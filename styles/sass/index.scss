@@ -1,0 +1,107 @@
+html, body {
+	
+	height: 100%;
+	width: 100%;
+
+}
+
+html {
+
+	body {
+		
+		display: flex;
+		flex-direction: column;
+		
+		&::-webkit-scrollbar {
+		
+			display: none;
+			
+		}
+		
+		&::-moz-scrollbar
+		
+		header {
+			
+			flex: 0 0 auto;
+			
+			display: block;
+			
+			height: 50%;
+			
+			background: rgba(219, 127, 45, 1);
+			box-shadow: inset 0px -5px 15px -5px black;
+		
+			.headerContents {
+				
+				display: inline-flex;
+				align-items: center;
+				
+				position: fixed;
+				
+				z-index: 1;
+				
+				#coffeecup {
+					
+					display: inline-block;
+					
+					width: 258.125px;
+					height: 261.625px;
+					
+					float: left;
+					
+				}
+				
+				.headerText {
+				
+					display: inline-flex;
+					flex-direction: column;
+					justify-content: center;
+					
+					height: 100%;
+					
+					padding: {
+						
+						top: 40px;
+						left: 30px;
+						
+					}
+					
+					h1, h3 {
+					
+						display: block;
+						flex: 0 0 auto;
+						color: rgba(58, 40, 25, 1);
+					
+					}
+					
+					h3 {
+						
+						font-family: 'Open Sans';
+						padding-top: 5px;
+						font-style: italic;
+					
+					}
+				
+				}
+			
+			}
+		
+		}
+		
+		main {
+			
+			flex: 1 0 auto;
+			
+			min-height: 1000px;
+			
+			background: rgba(61, 61, 61, 1);
+			
+			z-index: 2;
+		
+		}
+		
+		
+	
+	}
+
+}
