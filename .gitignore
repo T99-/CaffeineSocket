@@ -1,8 +1,8 @@
 # .gitignore File for CaffeineSocket
 
-	# IntelliJ
-	/.idea/
-	/CaffeineSocket.iml
+# IntelliJ
+.idea/
+CaffeineSocket.iml
 
-	# etc
-	/out/
+# etc
+out/
