@@ -7,41 +7,34 @@ html body {
   flex-direction: column; }
   html body::-webkit-scrollbar {
     display: none; }
-  html body::-moz-scrollbar
-  header {
+  html body header {
     flex: 0 0 auto;
     display: block;
     height: 50%;
     background: #db7f2d;
     box-shadow: inset 0px -5px 15px -5px black; }
-    html body::-moz-scrollbar
-    header .headerContents {
+    html body header .headerContents {
       display: inline-flex;
       align-items: center;
       position: fixed;
       z-index: 1; }
-      html body::-moz-scrollbar
-      header .headerContents #coffeecup {
+      html body header .headerContents #coffeecup {
         display: inline-block;
         width: 258.125px;
         height: 261.625px;
         float: left; }
-      html body::-moz-scrollbar
-      header .headerContents .headerText {
+      html body header .headerContents .headerText {
         display: inline-flex;
         flex-direction: column;
         justify-content: center;
         height: 100%;
         padding-top: 40px;
         padding-left: 30px; }
-        html body::-moz-scrollbar
-        header .headerContents .headerText h1, html body::-moz-scrollbar
-        header .headerContents .headerText h3 {
+        html body header .headerContents .headerText h1, html body header .headerContents .headerText h3 {
           display: block;
           flex: 0 0 auto;
           color: #3a2819; }
-        html body::-moz-scrollbar
-        header .headerContents .headerText h3 {
+        html body header .headerContents .headerText h3 {
           font-family: 'Open Sans';
           padding-top: 5px;
           font-style: italic; }
