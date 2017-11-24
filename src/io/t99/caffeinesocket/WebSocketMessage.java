@@ -27,16 +27,13 @@ import io.t99.caffeinesocket.util.NumberBaseConverter;
  */
 public class WebSocketMessage {
 
-	// TODO - Make this class.
-	// TODO - Provide a constructor for creating a message.
-	// TODO - Provide a method for getting the bytes of a message to feed directly into the method parameters of the WebSocket 'write()' method.
-	// TODO - Figure out how to more effectively loop through the construction of a received message.
-	// TODO - Account for non-FIN messages, pings, and other control frames.
-	
-	/**
-	 * Indicator of the current completeness of a given WebSocketMessage instance.
+	/* TODO
+	 *  - Make this class.
+	 *  - Provide a constructor for creating a message.
+	 *  - Provide a method for getting the bytes of a message to feed directly into the method parameters of the WebSocket 'write()' method.
+	 *  - Figure out how to more effectively loop through the construction of a received message.
+	 *  - Account for non-FIN messages, pings, and other control frames.
 	 */
-	WebSocketMessageState state = WebSocketMessageState.INCOMPLETE;
 	
 	/*
 	 *
@@ -62,6 +59,13 @@ public class WebSocketMessage {
 	 *	+---------------------------------------------------------------+
 	 *
 	 */
+	
+	// Fields
+	
+	/**
+	 * Indicator of the current completeness of a given WebSocketMessage instance.
+	 */
+	WebSocketMessageState state = WebSocketMessageState.INCOMPLETE;
 	
 	/**
 	 * The raw binary of a given instance of WebSocketMessage. Initially empty, but appended to as the provider {@link WebSocketListener} calls {@link #process(Binary)}.
@@ -93,10 +97,21 @@ public class WebSocketMessage {
 	 * precede the payload size in the WebSocket header.
 	 */
 	/**
-	 * Constant used to denote the smallest number of bits that can precede either the {@link #maskingKey}, or the {@link #payload}, depending
+	 * Constant used to denote the smallest number of bits that can precede either the {@link #maskingKey}, or the
+	 * {@link #payload}, depending on whether or not the {@link #masked} boolean is true. Set to 16b/2B.
 	 */
 	public static final int PLS_SMALL	= 16;
+	
+	/**
+	 * Constant used to denote the middle-sized number of bits that can precede either the {@link #maskingKey}, or the
+	 * {@link #payload}, depending on whether or not the {@link #masked} boolean is true. Set to 32b/4B.
+	 */
 	public static final int PLS_MEDIUM	= 32;
+	
+	/**
+	 * Constant used to denote the largest number of bits that can precede either the {@link #maskingKey}, or the
+	 * {@link #payload}, depending on whether or not the {@link #masked} boolean is true. Set to 80b/10B.
+	 */
 	public static final int PLS_LARGE	= 80;
 	
 	// The finality marker for the message. If this is true, this is the last message in a series. Singlet messages
@@ -133,10 +148,6 @@ public class WebSocketMessage {
 	// The mask marker for the message. If this is true, the message is masked, as is usually (and as should be) the
 	// case with client-to-server communication.
 	private Boolean masked;
-	
-	// This holds one of the PLS_XXX constants from above. It denotes which payload size scheme this message's header
-	// uses.
-	private int	payloadLengthSize = NOT_SET;
 	
 	// The decimal value found from the first seven bits that can be used to encode the payload size.
 	private int payloadLengthPlaceholder = NOT_SET;
@@ -208,7 +219,6 @@ public class WebSocketMessage {
 
 		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder <= 125 && payloadLengthPlaceholder != NOT_SET) {
 
-			payloadLengthSize = PLS_SMALL;
 			payloadLengthBytes = payloadLengthPlaceholder;
 			headerSize = PLS_SMALL; // Without the masking key.
 
@@ -216,7 +226,6 @@ public class WebSocketMessage {
 
 		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder == 126 && rawMessage.size() >= PLS_MEDIUM) {
 
-			payloadLengthSize = PLS_MEDIUM;
 			payloadLengthBytes = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_MEDIUM));
 			headerSize = PLS_MEDIUM; // Without the masking key.
 
@@ -224,7 +233,6 @@ public class WebSocketMessage {
 
 		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder == 127 && rawMessage.size() >= PLS_LARGE) {
 
-			payloadLengthSize = PLS_LARGE;
 			payloadLengthBytes = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_LARGE));
 			headerSize = PLS_LARGE; // Without the masking key.
 
@@ -268,6 +276,16 @@ public class WebSocketMessage {
 
 		return state;
 
+	}
+	
+	public void formMessage(String string) {
+		
+		fin = false;
+		rsv1 = false;
+		rsv2 = false;
+		rsv3 = false;
+		
+		
 	}
 
 }
