@@ -16,6 +16,7 @@ package io.t99.caffeinesocket;
  *	limitations under the License.
  */
 
+import io.t99.caffeinesocket.exceptions.InvalidOpcodeException;
 import io.t99.caffeinesocket.util.Binary;
 import io.t99.caffeinesocket.util.NumberBaseConverter;
 
@@ -79,10 +80,8 @@ public class WebSocketMessage {
 	 * yet, as there is no way for a numeric field to be set to a negative value otherwise.
 	 *
 	 * @see #headerSize
-	 * @see #opcode
 	 * @see #payloadLengthBytes
 	 * @see #payloadLengthPlaceholder
-	 * @see #payloadLengthSize
 	 */
 	public static final int NOT_SET = -1;
 	
@@ -143,7 +142,7 @@ public class WebSocketMessage {
 	 *	- 0xE (dec 14): [Reserved for further control frames...]
 	 *	- 0xF (dec 15): [Reserved for further control frames...]
 	 */
-	private int opcode = NOT_SET;
+	private WebSocketFrameType frameType;
 	
 	// The mask marker for the message. If this is true, the message is masked, as is usually (and as should be) the
 	// case with client-to-server communication.
@@ -193,9 +192,17 @@ public class WebSocketMessage {
 
 		}
 
-		if (opcode == NOT_SET && rawMessage.size() >= 8) {
+		if (frameType == null && rawMessage.size() >= 8) {
 
-			opcode = NumberBaseConverter.binToDec(new Binary(rawMessage, 4, 8));
+			try {
+				
+				frameType = WebSocketFrameType.getFrameTypeForOpcode(NumberBaseConverter.binToDec(new Binary(rawMessage, 4, 8)));
+				
+			} catch (InvalidOpcodeException e) {
+				
+				if (CaffeineSocket.getDebug()) System.err.println(e);
+				
+			}
 
 		}
 
@@ -284,7 +291,7 @@ public class WebSocketMessage {
 		rsv1 = false;
 		rsv2 = false;
 		rsv3 = false;
-		
+		frameType = WebSocketFrameType.TEXT;
 		
 	}
 
