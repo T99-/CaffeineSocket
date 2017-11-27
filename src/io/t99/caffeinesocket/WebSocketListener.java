@@ -75,19 +75,20 @@ public class WebSocketListener implements Runnable {
 	@Override
 	public void run() {
 	
-		WebSocketMessageState messageState = WebSocketMessageState.INCOMPLETE;
+		WebSocketFrameState frameState;
 		
 		while (true) {
 		
-			WebSocketMessage message = new WebSocketMessage();
+			WebSocketFrame frame = new WebSocketFrame();
+			frameState = WebSocketFrameState.INCOMPLETE;
 			
-			while (messageState == WebSocketMessageState.INCOMPLETE) {
+			while (frameState == WebSocketFrameState.INCOMPLETE) {
 				
 				try {
 					
 					if (input != null && input.available() > 0) {
 						
-						messageState = message.process(NumberBaseConverter.decToBin(input.read()));
+						frameState = frame.process(NumberBaseConverter.decToBin(input.read()));
 					
 					}
 					
@@ -97,7 +98,7 @@ public class WebSocketListener implements Runnable {
 					
 				}
 				
-				if (messageState == WebSocketMessageState.ERROR) {
+				if (frameState == WebSocketFrameState.ERROR) { // TODO - possibly make the WebSocketFrame throw an error instead of this conditional? faster maybe?
 					
 					parent.close();
 					

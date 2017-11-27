@@ -29,7 +29,6 @@ public class CaffeineSocket {
 		WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
 		webSocket.handshake();
 		
-		
 		//shifter();
 		
 //		binary.append(false);

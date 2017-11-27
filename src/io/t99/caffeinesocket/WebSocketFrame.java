@@ -19,21 +19,24 @@ package io.t99.caffeinesocket;
 import io.t99.caffeinesocket.exceptions.InvalidOpcodeException;
 import io.t99.caffeinesocket.util.Binary;
 import io.t99.caffeinesocket.util.NumberBaseConverter;
+import io.t99.caffeinesocket.util.StringUtils;
+
+import java.io.UnsupportedEncodingException;
 
 /**
- * Processor for incoming {@link WebSocket} messages, and builder for outgoing <code>WebSocket</code> messages.
+ * Processor for incoming {@link WebSocket} frames, and builder for outgoing <code>WebSocket</code> frames.
  *
  * @author <a href="mailto:trevorsears.main@gmail.com">Trevor Sears</a>
  * @version v0.1.0
  */
-public class WebSocketMessage {
+public class WebSocketFrame {
 
 	/* TODO
 	 *  - Make this class.
-	 *  - Provide a constructor for creating a message.
-	 *  - Provide a method for getting the bytes of a message to feed directly into the method parameters of the WebSocket 'write()' method.
-	 *  - Figure out how to more effectively loop through the construction of a received message.
-	 *  - Account for non-FIN messages, pings, and other control frames.
+	 *  - Provide a constructor for creating a frame.
+	 *  - Provide a method for getting the bytes of a frame to feed directly into the method parameters of the WebSocket 'write()' method.
+	 *  - Figure out how to more effectively loop through the construction of a received frame.
+	 *  - Account for non-FIN frames, pings, and other control frames.
 	 */
 	
 	/*
@@ -64,19 +67,19 @@ public class WebSocketMessage {
 	// Fields
 	
 	/**
-	 * Indicator of the current completeness of a given WebSocketMessage instance.
+	 * Indicator of the current completeness of a given WebSocketFrame instance.
 	 */
-	WebSocketMessageState state = WebSocketMessageState.INCOMPLETE;
+	WebSocketFrameState state = WebSocketFrameState.INCOMPLETE;
 	
 	/**
-	 * The raw binary of a given instance of WebSocketMessage. Initially empty, but appended to as the provider {@link WebSocketListener} calls {@link #process(Binary)}.
+	 * The raw binary of a given instance of WebSocketFrame. Initially empty, but appended to as the provider {@link WebSocketListener} calls {@link #process(Binary)}.
 	 */
 	private Binary rawMessage = new Binary();
 	
 	/**
 	 * Assigned to numeric variables before they have been set.
 	 * <p>
-	 * This allows for an easy (and uniform) way to check if a certain numeric field in a <code>WebSocketMessage</code> has been set
+	 * This allows for an easy (and uniform) way to check if a certain numeric field in a <code>WebSocketFrame</code> has been set
 	 * yet, as there is no way for a numeric field to be set to a negative value otherwise.
 	 *
 	 * @see #headerSize
@@ -86,7 +89,7 @@ public class WebSocketMessage {
 	public static final int NOT_SET = -1;
 	
 	/*
-	 * These constants denote the payload size scheme that a message *can* used.
+	 * These constants denote the payload size scheme that a frame *can* used.
 	 *
 	 *	- PLS_SMALL		= 07 bits used to encode the payload size.
 	 *	- PLS_MEDIUM	= 23 bits used to encode the payload size.
@@ -113,7 +116,7 @@ public class WebSocketMessage {
 	 */
 	public static final int PLS_LARGE	= 80;
 	
-	// The finality marker for the message. If this is true, this is the last message in a series. Singlet messages
+	// The finality marker for the frame. If this is true, this is the last frame in a series. Singlet frames
 	// are marked with `fin = true` as well.
 	private Boolean fin;
 	
@@ -123,7 +126,7 @@ public class WebSocketMessage {
 	private Boolean rsv3;
 	
 	/*
-	 * The OpCode for the message. Available codes listed below.
+	 * The opcode for the frame. Available codes listed below.
 	 *
 	 *	- 0x0 (dec 00): Continuation Frame
 	 *	- 0x1 (dec 01): Text Frame
@@ -144,7 +147,7 @@ public class WebSocketMessage {
 	 */
 	private WebSocketFrameType frameType;
 	
-	// The mask marker for the message. If this is true, the message is masked, as is usually (and as should be) the
+	// The mask marker for the frame. If this is true, the frame is masked, as is usually (and as should be) the
 	// case with client-to-server communication.
 	private Boolean masked;
 	
@@ -164,7 +167,24 @@ public class WebSocketMessage {
 	// payload = rawMessage - (fin + RSV# + opcode + masked + payloadLengthBytes + maskingKey)
 	private Binary payload;
 	
-	public WebSocketMessageState process(Binary bin) {
+	public WebSocketFrame() {}
+	
+	public WebSocketFrame(boolean masked, String string) throws UnsupportedEncodingException {
+		
+		if (!StringUtils.isPureASCII(string)) throw new UnsupportedEncodingException("String passed to WebSocketFrame(boolean, String) was not pure ASCII.");
+		
+		fin = false;
+		rsv1 = false;
+		rsv2 = false;
+		rsv3 = false;
+		frameType = WebSocketFrameType.TEXT;
+		this.masked = masked;
+		
+		if (string.length() < PLS_SMALL) {} // TODO - Figure out size cutoffs
+		
+	}
+	
+	public WebSocketFrameState process(Binary bin) {
 
 		rawMessage.append(bin);
 
@@ -210,9 +230,9 @@ public class WebSocketMessage {
 
 			masked = rawMessage.getBit(8);
 			
-			if (!masked) {
+			if (!masked) { // TODO - change this to also check if this is a client receiving, or a server receiving. important!
 
-				state = WebSocketMessageState.ERROR;
+				state = WebSocketFrameState.ERROR; // TODO - change to return the frame state + rename classes to frame rather than message
 
 			}
 
@@ -220,13 +240,13 @@ public class WebSocketMessage {
 
 		if (payloadLengthPlaceholder == NOT_SET && rawMessage.size() >= PLS_SMALL) {
 
-			payloadLengthPlaceholder = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_SMALL));
+			payloadLengthPlaceholder = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_SMALL)); // TODO - change to payloadLengthIndicator
 
 		}
 
 		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder <= 125 && payloadLengthPlaceholder != NOT_SET) {
 
-			payloadLengthBytes = payloadLengthPlaceholder;
+			payloadLengthBytes = payloadLengthPlaceholder; // TODO - change to payloadLength
 			headerSize = PLS_SMALL; // Without the masking key.
 
 		}
@@ -252,7 +272,7 @@ public class WebSocketMessage {
 
 		}
 
-		if ((rawMessage.size() - headerSize) == payloadLengthBytes * 8) {
+		if ((rawMessage.size() - headerSize) / 8 == payloadLengthBytes) {
 
 			payload = new Binary(rawMessage, headerSize);
 
@@ -268,8 +288,9 @@ public class WebSocketMessage {
 				payload.append(Binary.logicalXor(payloadOctets[octet], maskingKeyOctets[octet % 4]));
 
 			}
+			// Now payload holds the unmasked version of the frame.
 
-			state = WebSocketMessageState.COMPLETE;
+			state = WebSocketFrameState.COMPLETE;
 
 			for (Binary binary: payload.toBinaryOctetArray()) {
 
@@ -283,16 +304,6 @@ public class WebSocketMessage {
 
 		return state;
 
-	}
-	
-	public void formMessage(String string) {
-		
-		fin = false;
-		rsv1 = false;
-		rsv2 = false;
-		rsv3 = false;
-		frameType = WebSocketFrameType.TEXT;
-		
 	}
 
 }

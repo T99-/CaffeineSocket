@@ -17,25 +17,25 @@ package io.t99.caffeinesocket;
  */
 
 /**
- * Enumeration of the possible states of a WebSocketMessage.
+ * Enumeration of the possible states of a WebSocketFrame.
  *
  * @author <a href="mailto:trevorsears.main@gmail.com">Trevor Sears</a>
  * @version v0.1.0
- * @see WebSocketMessage
- * @see WebSocketMessage#state
+ * @see WebSocketFrame
+ * @see WebSocketFrame#state
  * @see WebSocketListener#run()
  */
-public enum WebSocketMessageState {
+public enum WebSocketFrameState {
 	
 	/**
-	 * The WebSocketMessage is incomplete.
+	 * The WebSocketFrame is incomplete.
 	 * <p>
 	 * <code>(rawMessage.size() - headerSize) &#60; payloadLengthBytes * 8</code>
 	 */
 	INCOMPLETE,
 	
 	/**
-	 * The WebSocketMessage is complete.
+	 * The WebSocketFrame is complete.
 	 * <p>
 	 * <code>(rawMessage.size() - headerSize) == payloadLengthBytes * 8</code>
 	 */
