@@ -7,9 +7,8 @@
 		
 		<title>CaffeineSocket - A pure Java WebSocket implementation.</title>
 		
-		<link rel="stylesheet" type="text/css" href="styles/global.css">
 		<link rel="stylesheet" type="text/css" href="styles/index.css">
-		<!--<script rel="script" src="js/websocket.js"></script>-->
+		<script rel="script" src="javascript/index.js"></script>
 	
 	</head>
 	
@@ -39,7 +38,206 @@
 	
 		<main>
 		
+			<div class="mainContent" style="left: 0;"> <!-- Inline styling to reduce page-switch stuttering. -->
 
+				<button onclick="pageSwitch()" class="switch" tabindex="-1"><img src="img/arrow.png"></button>
+
+				<div class="content">
+
+					<h1><a id="home">Main Content</a></h1>
+
+				</div>
+
+			</div>
+
+			<div class="changelog">
+
+				<button onclick="pageSwitch()" class="switch" tabindex="-1"><img src="img/arrow.png"></button>
+
+				<div class="content">
+
+					<h1><a id="changelog">Changelog</a></h1>
+
+					<div class="codeblock">
+
+						<div id="v0.1.0" class="version">
+
+							<h3 class="versionheader">v0.1.0</h3>
+
+							<hr>
+
+							<h4 class="descriptiontext">
+								First pre-release of CaffeineSocket. Contains it's own fair share of bugs and problems. Use
+								at your own risk! Anything referenced here as a 'change' refers to changes between v0.1.0
+								and the pre-changelog GitHub commit preceeding the one including this CHANGELOG.md. Anything
+								referenced as an addition ('new') refers to all features since the creation of the
+								project.
+							</h4>
+
+							<div class="section newpackages">
+
+								<h5>New Packages</h5>
+
+								<div class="sectioncontent">
+
+									<p>
+										<span class="package">caffeinesocket</span>
+										The base package that contains all CaffeineSocket classes.
+									</p>
+
+									<p>
+										<span class="package">caffeinesocket.exceptions</span>
+										All exceptions related to the use of CaffeineSocket WebSockets.
+									</p>
+
+									<p>
+										<span class="package">caffeinesocket.util</span>
+										A collection of utility classes that are not directly responsible for any of the
+										intended uses of the library, but nonetheless help facilitate it.
+									</p>
+
+								</div>
+
+							</div>
+
+							<div class="section newclasses">
+
+								<h5>New Classes</h5>
+
+								<div class="sectioncontent">
+
+									<p><span class="package">caffeinesocket</span></p>
+
+									<div class="subsection">
+
+										<p>
+											<span class="class">CaffeineSocket</span>
+											Primarily used for testing. Will not be included in final release.
+										</p>
+
+										<p>
+											<span class="class">WebSocket</span>
+											The main WebSocket class that will be called in order to create a new WebSocket
+											object. Handles port reserving and the
+											<a href="https://tools.ietf.org/html/rfc6455">[RFC6455]</a> compliant WebSocket
+											handshake. Note: <i>does not yet support extensions</i>.
+										</p>
+
+										<p>
+											<span class="class">WebSocketListener</span>
+											text
+										</p>
+
+										<p>
+											<span class="class">WebSocketMessage</span>
+											text
+										</p>
+
+									</div>
+
+								</div>
+
+							</div>
+
+							<div class="section newenums">
+
+								<h5>New Enums</h5>
+
+								<div class="sectioncontent">
+
+									<p><span class="package">caffeinesocket</span></p>
+
+									<div class="subsection">
+
+										<p>
+											<span class="class">WebSocketFrameType</span>
+											text
+										</p>
+
+										<p>
+											<span class="class">WebSocketMessageState</span>
+											text
+										</p>
+
+									</div>
+
+								</div>
+
+							</div>
+
+							<div class="section newexceptions">
+
+								<h5>New Exceptions</h5>
+
+								<div class="sectioncontent">
+
+									<p><span class="package">caffeinesocket.exceptions</span></p>
+
+									<div class="subsection">
+
+										<p>
+											<span class="class">InvalidOpcodeException</span>
+											Occurs when an invalid opcode is sent in a WebSocket frame header.
+										</p>
+
+									</div>
+
+								</div>
+
+							</div>
+
+							<div class="section newfeatures">
+
+								<h5>New Features</h5>
+
+								<div class="sectioncontent">
+
+									<p>
+										Instantiate a new WebSocket with <span class="codeincode">WebSocket webSocket =
+										new WebSocket(String name, int port);</span>.
+									</p>
+
+								</div>
+
+							</div>
+
+							<div class="section bugfixes">
+
+								<h5>Bugfixes</h5>
+
+								<div class="sectioncontent">
+
+									<p>
+										Fixed a bug where frames could not be received after having received
+										the first frame sent by the client.
+									</p>
+
+								</div>
+
+							</div>
+
+							<div class="section miscchanges">
+
+								<h5>Miscellaneous Changes</h5>
+
+								<div class="sectioncontent">
+
+									<p>
+										Changed plenty of references to 'WebSocket messages' to 'WebSocket
+										frames', as it should be.
+									</p>
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
 		
 		</main>
 	

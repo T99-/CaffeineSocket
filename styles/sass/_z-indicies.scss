@@ -1,0 +1,27 @@
+html body {
+
+	header .headerContents {
+		z-index: 1;
+	}
+
+	footer {
+		z-index: 2;
+	}
+
+	main {
+		z-index: 3;
+	}
+
+	main { .mainContent, .changelog { .content {
+		z-index: 4;
+	}}}
+
+	main .changelog {
+		z-index: 5;
+	}
+
+	main { .mainContent, .changelog { .switch {
+		z-index: 6;
+	}}}
+
+}

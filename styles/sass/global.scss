@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Lato|Open+Sans');
-
-
+@import url('https://fonts.googleapis.com/css?family=Lato|Open+Sans|Ubuntu+Mono');
 
 * {
 	
@@ -21,6 +19,26 @@ p, h1, h2, h3, h4, h5, h6 {
 	align-items: center;
 	justify-content: center;
 	height:100%;
+
+}
+
+@mixin allFontFamily($font) {
+
+	p, h1, h2, h3, h4, h5, h6, a, li {
+
+		font-family: $font;
+
+	}
+
+}
+
+@mixin allFontColor($color) {
+
+	p, h1, h2, h3, h4, h5, h6, a, li {
+
+		color: $color;
+
+	}
 
 }
 

@@ -1,85 +1,280 @@
+@import url("https://fonts.googleapis.com/css?family=Lato|Open+Sans|Ubuntu+Mono");
+* {
+  margin: 0px;
+  padding: 0px;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lato';
+}
+
+.centerer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+html body header .headerContents {
+  z-index: 1;
+}
+html body footer {
+  z-index: 2;
+}
+html body main {
+  z-index: 3;
+}
+html body main .mainContent .content, html body main .changelog .content {
+  z-index: 4;
+}
+html body main .changelog {
+  z-index: 5;
+}
+html body main .mainContent .switch, html body main .changelog .switch {
+  z-index: 6;
+}
+
 html, body {
   height: 100%;
-  width: 100%; }
+  width: 100%;
+}
 
 html body {
   display: flex;
   flex-direction: column;
-  background: #db7f2d; }
-  html body::-webkit-scrollbar {
-    display: none; }
-  html body header {
-    flex: 0 0 auto;
-    display: block;
-    height: 50%;
-    min-height: 350px;
-    background: #db7f2d; }
-    html body header .headerContents {
-      display: inline-flex;
-      align-items: center;
-      position: fixed;
-      z-index: 1; }
-      html body header .headerContents .coffeecup {
-        display: inline-block;
-        width: 258.125px;
-        height: 261.625px;
-        float: left; }
-      html body header .headerContents .headerText {
-        display: inline-flex;
-        flex-direction: column;
-        justify-content: center;
-        height: 100%;
-        padding-top: 40px;
-        padding-left: 30px; }
-        html body header .headerContents .headerText h1, html body header .headerContents .headerText h3 {
-          display: block;
-          flex: 0 0 auto;
-          color: #3a2819; }
-        html body header .headerContents .headerText h3 {
-          font-family: 'Open Sans';
-          padding-top: 5px;
-          font-style: italic; }
-  html body main {
-    flex: 1 0 auto;
-    min-height: 1000px;
-    background: #3d3d3d;
-    box-shadow: 0px 0px 15px 1px black;
-    z-index: 4; }
-  html body footer {
-    height: 100px;
-    flex: 0 0 auto;
-    z-index: 3; }
-    html body footer .footerContents {
-      position: fixed;
-      height: 100px;
-      left: 0px;
-      right: 0px;
-      bottom: 0px; }
-      html body footer .footerContents div.csicon {
-        display: inline-block;
-        float: left;
-        z-index: 3; }
-        html body footer .footerContents div.csicon .coffeecup {
-          display: inline-block;
-          height: 75px;
-          width: auto;
-          padding: 12.5px; }
-        html body footer .footerContents div.csicon .footerText {
-          display: inline-flex;
-          flex-direction: column;
-          height: 100px;
-          justify-content: center;
-          vertical-align: top; }
-      html body footer .footerContents div.links {
-        display: inline-flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 65px;
-        float: right;
-        padding-top: 17.5px;
-        padding-bottom: 17.5px;
-        padding-right: 10px; }
-        html body footer .footerContents div.links p, html body footer .footerContents div.links a {
-          text-align: right; }
+  background: #db7f2d;
+  overflow-x: hidden;
+}
+html body::-webkit-scrollbar {
+  display: none;
+}
+html body header {
+  flex: 0 0 auto;
+  display: block;
+  height: 500px;
+  background: #db7f2d;
+}
+html body header .headerContents {
+  display: inline-flex;
+  align-items: center;
+  position: fixed;
+}
+html body header .headerContents .coffeecup {
+  display: inline-block;
+  width: 258.125px;
+  height: 261.625px;
+  float: left;
+  filter: drop-shadow(10px 10px 8px #3a2819);
+}
+html body header .headerContents .headerText {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding-top: 40px;
+  padding-left: 30px;
+}
+html body header .headerContents .headerText h1, html body header .headerContents .headerText h3 {
+  display: block;
+  flex: 0 0 auto;
+  color: #3a2819;
+}
+html body header .headerContents .headerText h3 {
+  font-family: 'Open Sans';
+  padding-top: 5px;
+  font-style: italic;
+}
+html body main {
+  flex: 1 0 auto;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0px 0px 15px 1px #3a2819;
+}
+html body main p, html body main h1, html body main h2, html body main h3, html body main h4, html body main h5, html body main h6, html body main a, html body main li {
+  color: #3a2819;
+}
+html body main .mainContent, html body main .changelog {
+  display: inline-block;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  transition: left 1s;
+  transition-timing-function: ease;
+}
+html body main .mainContent .switch, html body main .changelog .switch {
+  background: rgba(255, 255, 255, 0);
+  position: sticky;
+  border: 0;
+  padding: 10px;
+}
+html body main .mainContent .switch img, html body main .changelog .switch img {
+  height: 40px;
+}
+html body main .mainContent .switch:focus, html body main .changelog .switch:focus {
+  outline: 0px;
+}
+html body main .mainContent .content, html body main .changelog .content {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}
+html body main .mainContent .content h1, html body main .changelog .content h1 {
+  flex: 0 0 auto;
+  width: 100%;
+  text-align: center;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+html body main .mainContent {
+  left: 0%;
+  border-right: 1px solid black;
+}
+html body main .mainContent .switch {
+  float: right;
+  top: 0px;
+  right: 0px;
+}
+html body main .changelog {
+  left: 100%;
+  border-left: 1px solid black;
+}
+html body main .changelog .switch {
+  transform: scaleX(-1);
+  float: left;
+  top: 0px;
+  left: 0px;
+}
+html body main .changelog .content {
+  flex: 1 0 auto;
+  display: flex;
+}
+html body main .changelog .content .codeblock {
+  flex: 1 1 auto;
+  border: 1px solid black;
+  border-radius: 10px;
+  box-shadow: inset 0px 0px 10px 1px black;
+  background: #eff0f1;
+  padding: 25px;
+  overflow-y: scroll;
+  margin-top: 25px;
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-bottom: 40px;
+}
+html body main .changelog .content .codeblock::-webkit-scrollbar {
+  display: none;
+}
+html body main .changelog .content .codeblock p, html body main .changelog .content .codeblock h1, html body main .changelog .content .codeblock h2, html body main .changelog .content .codeblock h3, html body main .changelog .content .codeblock h4, html body main .changelog .content .codeblock h5, html body main .changelog .content .codeblock h6, html body main .changelog .content .codeblock a {
+  font-family: 'Ubuntu Mono';
+  color: black;
+  font-weight: normal;
+  text-decoration: none;
+}
+html body main .changelog .content .codeblock a {
+  color: #0000FF;
+}
+html body main .changelog .content .codeblock .package, html body main .changelog .content .codeblock .class, html body main .changelog .content .codeblock .codeincode {
+  background: rgba(215, 215, 215, 0.7);
+  border-radius: 3px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+html body main .changelog .content .codeblock .version + .version {
+  margin-top: 40px;
+}
+html body main .changelog .content .codeblock .version h3.versionheader {
+  font-size: 18pt;
+  margin-left: 5px;
+}
+html body main .changelog .content .codeblock .version hr {
+  border-color: black;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+html body main .changelog .content .codeblock .version h4.descriptiontext {
+  font-size: 14pt;
+  line-height: 1.1;
+  margin-left: 5px;
+}
+html body main .changelog .content .codeblock .version .section {
+  margin-top: 10px;
+  margin-left: 5px;
+}
+html body main .changelog .content .codeblock .version .section h5 {
+  font-size: 14pt;
+}
+html body main .changelog .content .codeblock .version .section h5:before {
+  content: "- ";
+}
+html body main .changelog .content .codeblock .version .section h5:after {
+  content: ":";
+}
+html body main .changelog .content .codeblock .version .section .sectioncontent {
+  margin-left: 30px;
+}
+html body main .changelog .content .codeblock .version .section .sectioncontent .package:before {
+  content: "io.t99.";
+}
+html body main .changelog .content .codeblock .version .section .sectioncontent .class:after {
+  content: ".java";
+}
+html body main .changelog .content .codeblock .version .section .sectioncontent p {
+  font-size: 12pt;
+  line-height: 1.35;
+}
+html body main .changelog .content .codeblock .version .section .sectioncontent p:before {
+  content: "- ";
+}
+html body main .changelog .content .codeblock .version .section .sectioncontent .subsection {
+  margin-left: 30px;
+}
+html body footer {
+  height: 100px;
+  flex: 0 0 auto;
+}
+html body footer .footerContents {
+  position: fixed;
+  height: 100px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}
+html body footer .footerContents div.csicon {
+  display: inline-block;
+  float: left;
+}
+html body footer .footerContents div.csicon .coffeecup {
+  display: inline-block;
+  height: 75px;
+  width: auto;
+  padding: 12.5px;
+  filter: drop-shadow(6px 6px 3px #3a2819);
+}
+html body footer .footerContents div.csicon .footerText {
+  display: inline-flex;
+  flex-direction: column;
+  height: 100px;
+  justify-content: center;
+  vertical-align: top;
+}
+html body footer .footerContents div.links {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 65px;
+  float: right;
+  padding-top: 17.5px;
+  padding-bottom: 17.5px;
+  padding-right: 10px;
+}
+html body footer .footerContents div.links p, html body footer .footerContents div.links a {
+  text-align: right;
+}
 
 /*# sourceMappingURL=index.css.map */

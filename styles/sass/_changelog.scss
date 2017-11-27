@@ -1,0 +1,127 @@
+$leftOffset: 5px;
+
+p, h1, h2, h3, h4, h5, h6, a {
+
+	font-family: 'Ubuntu Mono';
+	color: black;
+	font-weight: normal;
+	text-decoration: none;
+
+}
+
+a {
+
+	color: #0000FF;
+
+}
+
+.package, .class, .codeincode {
+
+	$black: 215;
+	background: rgba($black, $black, $black, 0.7);
+	border-radius: 3px;
+
+	padding: {
+
+		top: 1px;
+		bottom: 1px;
+		left: 5px;
+		right: 5px;
+
+	}
+
+}
+
+.version {
+
+	& + .version {
+
+		margin-top: 40px;
+
+	}
+
+	h3.versionheader {
+
+		font-size: 18pt;
+		margin-left: $leftOffset;
+
+	}
+
+	hr {
+
+		border-color: black;
+		margin: {
+
+			top: 5px;
+			bottom: 10px;
+
+		}
+
+	}
+
+	h4.descriptiontext {
+
+		font-size: 14pt;
+		line-height: 1.1;
+		margin-left: $leftOffset;
+
+	}
+
+	.section {
+
+		margin: {
+
+			top: 10px;
+			left: 5px;
+
+		}
+
+		h5 { // Section Header
+
+			font-size: 14pt;
+
+			&:before { content: "- "; }
+			&:after { content: ":"; }
+
+		}
+
+		.sectioncontent {
+
+			margin-left: 30px;
+
+			.package:before {
+
+				content: "io.t99.";
+
+			}
+
+			.class:after {
+
+				content: ".java";
+
+			}
+
+			p {
+
+				font-size: 12pt;
+				line-height: 1.35;
+
+				&:before {
+
+					content: "- ";
+
+				}
+
+			}
+
+			.subsection {
+
+				margin-left: 30px;
+
+			}
+
+		}
+
+	}
+
+}
