@@ -94,12 +94,13 @@ public class WebSocketListener implements Runnable {
 					
 				} catch (IOException e) {
 					
-					if (CaffeineSocket.getDebug()) System.out.println("not sure what this exception is");
+					if (CaffeineSocket.getDebug()) System.out.println("Attempted to read from closed parentWebSocket SocketInputStream.");
 					
 				}
 				
 				if (frameState == WebSocketFrameState.ERROR) { // TODO - possibly make the WebSocketFrame throw an error instead of this conditional? faster maybe?
 					
+					if (CaffeineSocket.getDebug()) System.out.println("WebSocketFrameState returned as ERROR: closing parent WebSocket...");
 					parent.close();
 					
 				}

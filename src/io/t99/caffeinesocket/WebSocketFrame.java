@@ -174,15 +174,17 @@ public class WebSocketFrame {
 	
 	public WebSocketFrame(boolean maskRequirement) {
 		
-		this.masked = masked;
+		this.maskRequirement = maskRequirement;
 		
 	}
 	
-	public WebSocketFrame(boolean masked, WebSocketDataFrameType frameType) {
+	public WebSocketFrame(boolean maskRequirement, WebSocketDataFrameType frameType) {
+		
+		this.maskRequirement = maskRequirement;
 		
 	}
 	
-	public WebSocketFrame(boolean masked, String string) throws UnsupportedEncodingException {
+	public WebSocketFrame(boolean maskRequirement, String string) throws UnsupportedEncodingException {
 		
 		if (!StringUtils.isPureASCII(string)) throw new UnsupportedEncodingException("String passed to WebSocketFrame(boolean, String) was not pure ASCII.");
 		
@@ -191,7 +193,7 @@ public class WebSocketFrame {
 		rsv2 = false;
 		rsv3 = false;
 		frameType = WebSocketDataFrameType.TEXT;
-		this.masked = masked;
+		this.maskRequirement = maskRequirement;
 		
 		if (string.length() < PLS_SMALL) {} // TODO - Figure out size cutoffs
 		
