@@ -70,6 +70,7 @@ public class WebSocketFrame {
 	 * Indicator of the current completeness of a given WebSocketFrame instance.
 	 */
 	WebSocketFrameState state = WebSocketFrameState.INCOMPLETE;
+	Boolean headerComplete = false;
 	
 	/**
 	 * The raw binary of a given instance of WebSocketFrame. Initially empty, but appended to as the provider {@link WebSocketListener} calls {@link #process(Binary)}.
@@ -83,8 +84,8 @@ public class WebSocketFrame {
 	 * yet, as there is no way for a numeric field to be set to a negative value otherwise.
 	 *
 	 * @see #headerSize
-	 * @see #payloadLengthBytes
-	 * @see #payloadLengthPlaceholder
+	 * @see #payloadLength
+	 * @see #payloadLengthIndicator
 	 */
 	public static final int NOT_SET = -1;
 	
@@ -151,11 +152,15 @@ public class WebSocketFrame {
 	// case with client-to-server communication.
 	private Boolean masked;
 	
+	// Whether or not this message SHOULD be masked. If this does not match the information provided by the frame,
+	// error the frame and disconnect.
+	private boolean maskRequirement;
+	
 	// The decimal value found from the first seven bits that can be used to encode the payload size.
-	private int payloadLengthPlaceholder = NOT_SET;
+	private int payloadLengthIndicator = NOT_SET;
 	
 	// The length of the payload.
-	private long payloadLengthBytes = NOT_SET;
+	private long payloadLength = NOT_SET;
 	
 	// The masking key to decode the payload.
 	private Binary maskingKey;
@@ -164,10 +169,18 @@ public class WebSocketFrame {
 	private int headerSize = NOT_SET;
 	
 	// The actual raw data of the payload, with the metadata stripped.
-	// payload = rawMessage - (fin + RSV# + opcode + masked + payloadLengthBytes + maskingKey)
+	// payload = rawMessage - (fin + RSV# + opcode + masked + payloadLength + maskingKey)
 	private Binary payload;
 	
-	public WebSocketFrame() {}
+	public WebSocketFrame(boolean maskRequirement) {
+		
+		this.masked = masked;
+		
+	}
+	
+	public WebSocketFrame(boolean masked, WebSocketDataFrameType frameType) {
+		
+	}
 	
 	public WebSocketFrame(boolean masked, String string) throws UnsupportedEncodingException {
 		
@@ -177,133 +190,141 @@ public class WebSocketFrame {
 		rsv1 = false;
 		rsv2 = false;
 		rsv3 = false;
-		frameType = WebSocketFrameType.TEXT;
+		frameType = WebSocketDataFrameType.TEXT;
 		this.masked = masked;
 		
 		if (string.length() < PLS_SMALL) {} // TODO - Figure out size cutoffs
 		
 	}
 	
-	public WebSocketFrameState process(Binary bin) {
+	public WebSocketFrameState process(Binary bin) { // TODO - Change this so that the loop only has to do a single boolean check once the header is completed.
 
 		rawMessage.append(bin);
 
-		if (fin == null && rawMessage.size() >= 1) {
-
-			fin = rawMessage.getBit(0);
-
-		}
-
-		if (rsv1 == null && rawMessage.size() >= 2) {
-
-			rsv1 = rawMessage.getBit(1);
-
-		}
-
-		if (rsv2 == null && rawMessage.size() >= 3) {
-
-			rsv2 = rawMessage.getBit(2);
-
-		}
-
-		if (rsv3 == null && rawMessage.size() >= 4) {
-
-			rsv3 = rawMessage.getBit(3);
-
-		}
-
-		if (frameType == null && rawMessage.size() >= 8) {
-
-			try {
-				
-				frameType = WebSocketFrameType.getFrameTypeForOpcode(NumberBaseConverter.binToDec(new Binary(rawMessage, 4, 8)));
-				
-			} catch (InvalidOpcodeException e) {
-				
-				if (CaffeineSocket.getDebug()) System.err.println(e);
-				
-			}
-
-		}
-
-		if (masked == null && rawMessage.size() >= 9) {
-
-			masked = rawMessage.getBit(8);
+		if (!headerComplete) {
 			
-			if (!masked) { // TODO - change this to also check if this is a client receiving, or a server receiving. important!
-
-				state = WebSocketFrameState.ERROR; // TODO - change to return the frame state + rename classes to frame rather than message
-
+			if (fin == null && rawMessage.size() >= 1) fin = rawMessage.getBit(0);
+			
+			if (rsv1 == null && rawMessage.size() >= 2) rsv1 = rawMessage.getBit(1);
+			
+			if (rsv2 == null && rawMessage.size() >= 3) rsv2 = rawMessage.getBit(2);
+			
+			if (rsv3 == null && rawMessage.size() >= 4) rsv3 = rawMessage.getBit(3);
+			
+			if (frameType == null && rawMessage.size() >= 8) {
+				
+				try {
+					
+					frameType = WebSocketFrameType.getFrameTypeForOpcode(NumberBaseConverter.binToDec(new Binary(rawMessage, 4, 8)));
+					
+				} catch (InvalidOpcodeException e) {
+					
+					if (CaffeineSocket.getDebug()) System.err.println(e);
+					
+				}
+				
 			}
-
-		}
-
-		if (payloadLengthPlaceholder == NOT_SET && rawMessage.size() >= PLS_SMALL) {
-
-			payloadLengthPlaceholder = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_SMALL)); // TODO - change to payloadLengthIndicator
-
-		}
-
-		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder <= 125 && payloadLengthPlaceholder != NOT_SET) {
-
-			payloadLengthBytes = payloadLengthPlaceholder; // TODO - change to payloadLength
-			headerSize = PLS_SMALL; // Without the masking key.
-
-		}
-
-		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder == 126 && rawMessage.size() >= PLS_MEDIUM) {
-
-			payloadLengthBytes = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_MEDIUM));
-			headerSize = PLS_MEDIUM; // Without the masking key.
-
-		}
-
-		if (payloadLengthBytes == NOT_SET && payloadLengthPlaceholder == 127 && rawMessage.size() >= PLS_LARGE) {
-
-			payloadLengthBytes = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_LARGE));
-			headerSize = PLS_LARGE; // Without the masking key.
-
-		}
-
-		if (masked != null && masked && maskingKey == null && rawMessage.size() >= headerSize + 32) {
-
-			maskingKey = new Binary(rawMessage, headerSize, headerSize + 32);
-			headerSize += 32; // Now it includes the masking key.
-
-		}
-
-		if ((rawMessage.size() - headerSize) / 8 == payloadLengthBytes) {
-
-			payload = new Binary(rawMessage, headerSize);
-
-			Binary encodedPayload = payload;	// This will hold the masked version of the payload.
-			payload = new Binary();				// The payload variable can now hold the unmasked version.
-
-			// Here's where we unmask the payload.
-			Binary[] maskingKeyOctets = maskingKey.toBinaryOctetArray();
-			Binary[] payloadOctets = encodedPayload.toBinaryOctetArray();
-
-			for (int octet = 0; octet < payloadOctets.length; octet++) {
-
-				payload.append(Binary.logicalXor(payloadOctets[octet], maskingKeyOctets[octet % 4]));
-
+			
+			if (masked == null && rawMessage.size() >= 9) {
+				
+				masked = rawMessage.getBit(8);
+				
+				if (!(masked == maskRequirement)) {
+					
+					state = WebSocketFrameState.ERROR;
+					
+				}
+				
 			}
-			// Now payload holds the unmasked version of the frame.
-
-			state = WebSocketFrameState.COMPLETE;
-
-			for (Binary binary: payload.toBinaryOctetArray()) {
-
-				System.out.print((char) NumberBaseConverter.binToDec(binary));
-
+			
+			if (payloadLengthIndicator == NOT_SET && rawMessage.size() >= PLS_SMALL) {
+				
+				payloadLengthIndicator = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_SMALL));
+				
 			}
-
-			System.out.print("\r\n");
-
+			
+			if (payloadLength == NOT_SET && payloadLengthIndicator <= 125 && payloadLengthIndicator != NOT_SET) {
+				
+				payloadLength = payloadLengthIndicator;
+				headerSize = PLS_SMALL; // Without the masking key.
+				
+			}
+			
+			if (payloadLength == NOT_SET && payloadLengthIndicator == 126 && rawMessage.size() >= PLS_MEDIUM) {
+				
+				payloadLength = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_MEDIUM));
+				headerSize = PLS_MEDIUM; // Without the masking key.
+				
+			}
+			
+			if (payloadLength == NOT_SET && payloadLengthIndicator == 127 && rawMessage.size() >= PLS_LARGE) {
+				
+				payloadLength = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_LARGE));
+				headerSize = PLS_LARGE; // Without the masking key.
+				
+			}
+			
+			if (masked != null && masked && maskingKey == null && rawMessage.size() >= headerSize + 32) {
+				
+				maskingKey = new Binary(rawMessage, headerSize, headerSize + 32);
+				headerSize += 32; // Now it includes the masking key.
+				
+			}
+			
+			if (areHeadersComplete()) headerComplete = true;
+			
+		} else {
+			
+			if ((rawMessage.size() - headerSize) / 8 == payloadLength) {
+				
+				payload = new Binary(rawMessage, headerSize);
+				
+				Binary encodedPayload = payload;	// This will hold the masked version of the payload.
+				payload = new Binary();				// The payload variable can now hold the unmasked version.
+				
+				// Here's where we unmask the payload.
+				Binary[] maskingKeyOctets = maskingKey.toBinaryOctetArray();
+				Binary[] payloadOctets = encodedPayload.toBinaryOctetArray();
+				
+				for (int octet = 0; octet < payloadOctets.length; octet++) {
+					
+					payload.append(Binary.logicalXor(payloadOctets[octet], maskingKeyOctets[octet % 4]));
+					
+				}
+				// Now payload holds the unmasked version of the frame.
+				
+				state = WebSocketFrameState.COMPLETE;
+				
+				for (Binary binary: payload.toBinaryOctetArray()) {
+					
+					System.out.print((char) NumberBaseConverter.binToDec(binary));
+					
+				}
+				
+				System.out.print("\r\n");
+				
+			}
+			
 		}
 
 		return state;
 
+	}
+	
+	private boolean areHeadersComplete() {
+	
+		if (fin == null) return false;
+		if (rsv1 == null) return false;
+		if (rsv2 == null) return false;
+		if (rsv3 == null) return false;
+		if (frameType == null) return false;
+		if (masked == null) return false;
+		if (payloadLength == NOT_SET) return false;
+		if (masked && maskingKey == null) return false;
+		if (masked && maskingKey.size() != 32) return false;
+		
+		return true;
+		
 	}
 
 }

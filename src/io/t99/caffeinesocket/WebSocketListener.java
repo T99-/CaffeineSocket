@@ -79,7 +79,7 @@ public class WebSocketListener implements Runnable {
 		
 		while (true) {
 		
-			WebSocketFrame frame = new WebSocketFrame();
+			WebSocketFrame frame = new WebSocketFrame(true); // TODO - Unhardcode this value - not always going to be a server.
 			frameState = WebSocketFrameState.INCOMPLETE;
 			
 			while (frameState == WebSocketFrameState.INCOMPLETE) {
