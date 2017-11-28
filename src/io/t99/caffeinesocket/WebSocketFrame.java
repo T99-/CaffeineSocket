@@ -53,7 +53,7 @@ public class WebSocketFrame {
 	 *	+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
 	 *	|     Extended payload length continued, if payload len == 127  |
 	 *	+ - - - - - - - - - - - - - - - +-------------------------------+
-	 *	|                               |Masking-key, if MASK set to 1  |
+	 *	|                               | Masking-key, if MASK set to 1 |
 	 *	+-------------------------------+-------------------------------+
 	 *	| Masking-key (continued)       |          Payload Data         |
 	 *	+-------------------------------- - - - - - - - - - - - - - - - +
@@ -178,9 +178,22 @@ public class WebSocketFrame {
 		
 	}
 	
-	public WebSocketFrame(boolean maskRequirement, WebSocketDataFrameType frameType) {
+	public WebSocketFrame(boolean maskRequirement, WebSocketControlFrameType controlFrame) {
 		
 		this.maskRequirement = maskRequirement;
+		
+		switch (controlFrame) {
+			
+			case CONNECTION_CLOSE:
+				break;
+				
+			case PING:
+				break;
+				
+			case PONG:
+				break;
+			
+		}
 		
 	}
 	
@@ -254,14 +267,14 @@ public class WebSocketFrame {
 			
 			if (payloadLength == NOT_SET && payloadLengthIndicator == 126 && rawMessage.size() >= PLS_MEDIUM) {
 				
-				payloadLength = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_MEDIUM));
+				payloadLength = NumberBaseConverter.binToDec(new Binary(rawMessage, 16, PLS_MEDIUM));
 				headerSize = PLS_MEDIUM; // Without the masking key.
 				
 			}
 			
 			if (payloadLength == NOT_SET && payloadLengthIndicator == 127 && rawMessage.size() >= PLS_LARGE) {
 				
-				payloadLength = NumberBaseConverter.binToDec(new Binary(rawMessage, 9, PLS_LARGE));
+				payloadLength = NumberBaseConverter.binToDec(new Binary(rawMessage, 16, PLS_LARGE));
 				headerSize = PLS_LARGE; // Without the masking key.
 				
 			}
