@@ -1,8 +1,17 @@
 package io.t99.caffeinesocket.util;
 
-public class ByteList {
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class ByteList implements Iterable<Byte> {
 
 	private byte[] array;
+	
+	/**
+	 * Acts as the 'cursor' in the array, indicating where the next value should be placed. This therefore means that
+	 * `index` also always points to the first non-real value in the array, as while all indices are initialized to
+	 * zero, we know that any zero values that have an index equal to or greater than this value are non-real.
+	 */
 	private int index = 0;
 	private int growthStepSize;
 	
@@ -22,30 +31,121 @@ public class ByteList {
 		
 		if (size <= 0) throw new IllegalArgumentException("Illegal ByteList size: " + size);
 		array = new byte[size];
-		growthStepSize = growthStepSize;
+		this.growthStepSize = growthStepSize;
 		
 	}
 	
-	public void add(byte b) {
+	private synchronized void resizeUp() {
+		
+		// Store a copy of the array in `copy`.
+		byte[] copy = array;
+		
+		// Reset `array` to an array of it's previous size, plus the growth step size.
+		array = new byte[copy.length + growthStepSize];
+		
+		// Copy the previous elements of `array` (currently stored in `copy`) to the new `array` array.
+		System.arraycopy(copy, 0, array, 0, copy.length);
+		
+	}
 	
-		if (index > array.length) {
+	private synchronized void resizeDown() {
 		
-			byte[] copy = array;
-			
-			//for (int index = 0; index < )
+		// Store a copy of the array in `copy`.
+		byte[] copy = array;
 		
-		} else {
+		// Reset `array` to an array of it's previous size, minus the growth step size.
+		array = new byte[copy.length - growthStepSize];
+		
+		// Copy the previous elements of `array` (currently stored in `copy`) to the new `array` array.
+		System.arraycopy(copy, 0, array, 0, copy.length - growthStepSize);
+		
+	}
+	
+	public synchronized void add(byte b) {
+		
+		// If the current array is not large enough for the new element, call `resizeUp()`.
+		if (index > (array.length - 1)) resizeUp();
+		
+		// Store the new element at the active index of the array.
+		array[index] = b;
+		
+		index++;
+	
+	}
+	
+	public synchronized byte remove(int index) throws IndexOutOfBoundsException {
+		
+		if (index >= this.index) throw new IndexOutOfBoundsException("Attempted to remove index " + index + ", which is beyond the greatest index of " + (this.index - 1) + ".");
+		
+		byte returned = array[index];
+		byte[] copy = new byte[this.index - (index + 1)];
+		System.arraycopy(array, index + 1, copy, 0, this.index - (2 * (index + 1)));
+		this.index--;
+		System.arraycopy(copy, 0, array, index, copy.length);
+		
+		if (index < (array.length - growthStepSize)) resizeDown();
+		
+		return returned;
+		
+	}
+	
+	public synchronized void insert(int index, byte b) {
+	
+	
+	
+	}
+	
+	public int size() {
+		
+		return index;
+		
+	}
+	
+	public String getDebugInfo() {
+		
+		String info = "";
+		
+		info += "array:\t\t\t"		+ hrArray(array)	+ "\r\n";
+		info += "array.length:\t"	+ array.length		+ "\r\n";
+		info += "reported size:\t"	+ size()			+ "\r\n";
+		info += "growth step:\t"	+ growthStepSize;
+		
+		return info;
+		
+	}
+	
+	public static String hrArray(byte[] bytes) {
+		
+		String s = "[";
+		
+		for (int i = 0; i < bytes.length - 1; i++) {
 			
-			array[index] = b;
+			s += bytes[i] + ", ";
 			
 		}
-	
+		
+		s += bytes[bytes.length - 1] + "]";
+		
+		return s;
+		
 	}
 	
-	public void insert(int index, byte b) {
-	
-	
-	
+	@Override
+	public Iterator<Byte> iterator() { // This is nasty and probably grossly inefficient. If only Java supported primitively typed generics.
+		
+		ArrayList<Byte> arrayList = new ArrayList<>();
+		
+		byte[] copy = new byte[index];
+		System.arraycopy(array, 0, copy, 0, index);
+		
+		for (byte b: copy) {
+			
+			arrayList.add(b);
+			
+		}
+		
+		return arrayList.iterator();
+		
 	}
-
+	
 }

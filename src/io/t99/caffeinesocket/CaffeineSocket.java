@@ -16,6 +16,9 @@ package io.t99.caffeinesocket;
  *	limitations under the License.
  */
 
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+import io.t99.caffeinesocket.util.ByteList;
+
 public class CaffeineSocket {
 	
 	private static boolean debug = false;
@@ -24,8 +27,50 @@ public class CaffeineSocket {
 	
 	public static void main(String[] args) {
 		
-		byte[] arr = new byte[5];
-		System.out.println(arr.length);
+		ByteList bytes = new ByteList(10, 5);
+		
+		try {
+			
+			bytes.add((byte) 0);
+			bytes.add((byte) 1);
+			bytes.add((byte) 2);
+			bytes.add((byte) 3);
+			bytes.add((byte) 4);
+			bytes.add((byte) 5);
+			bytes.add((byte) 6);
+			bytes.add((byte) 7);
+			bytes.add((byte) 8);
+			bytes.add((byte) 9);
+			bytes.add((byte) 10);
+			bytes.add((byte) 11);
+			bytes.add((byte) 12);
+			bytes.add((byte) 13);
+			bytes.add((byte) 14);
+			bytes.remove(5);
+			bytes.remove(4);
+			bytes.remove(9);
+			bytes.add((byte) 15);
+			
+		} catch (ArrayIndexOutOfBoundsException e) {
+			
+			System.out.println("ArrayIndexOutOfBoundsException:");
+			e.printStackTrace();
+			System.out.println(bytes.getDebugInfo());
+			
+		}
+		
+		System.out.println(bytes.getDebugInfo());
+		
+//		byte[] arr = new byte[5];
+//		arr[0] = 0b00000001;
+//		arr[1] = 0b00000010;
+//		arr[2] = 0b00000011;
+//
+//		for (byte b: arr) {
+//
+//			System.out.println(b);
+//
+//		}
 		
 		//setDebug(true);
 		

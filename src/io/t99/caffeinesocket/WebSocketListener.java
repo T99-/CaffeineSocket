@@ -88,7 +88,7 @@ public class WebSocketListener implements Runnable {
 					
 					if (input != null && input.available() > 0) {
 						
-						frameState = frame.process(NumberBaseConverter.decToBin(input.read()));
+//						frameState = frame.process(NumberBaseConverter.decToBin(input.read()));
 					
 					}
 					
