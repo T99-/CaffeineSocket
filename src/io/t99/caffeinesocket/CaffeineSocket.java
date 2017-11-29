@@ -24,10 +24,13 @@ public class CaffeineSocket {
 	
 	public static void main(String[] args) {
 		
-		setDebug(true);
+		byte[] arr = new byte[5];
+		System.out.println(arr.length);
 		
-		WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
-		webSocket.handshake();
+		//setDebug(true);
+		
+		//WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
+		//webSocket.handshake();
 		
 		//shifter();
 		
