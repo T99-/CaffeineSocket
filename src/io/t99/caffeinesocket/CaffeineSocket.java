@@ -46,9 +46,11 @@ public class CaffeineSocket {
 			bytes.add((byte) 12);
 			bytes.add((byte) 13);
 			bytes.add((byte) 14);
-			bytes.remove(5);
-			bytes.remove(4);
-			bytes.remove(9);
+			bytes.remove(0);
+			bytes.remove(0);
+			bytes.remove(0);
+			bytes.remove(0);
+			bytes.remove(0);
 			bytes.add((byte) 15);
 			
 		} catch (ArrayIndexOutOfBoundsException e) {

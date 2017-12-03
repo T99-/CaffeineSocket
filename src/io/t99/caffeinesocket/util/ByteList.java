@@ -1,5 +1,21 @@
 package io.t99.caffeinesocket.util;
 
+/*
+ *	Copyright 2017, Trevor Sears <trevorsears.main@gmail.com>
+ *
+ *	Licensed under the Apache License, Version 2.0 (the "License");
+ *	you may not use this file except in compliance with the License.
+ *	You may obtain a copy of the License at
+ *
+ *		http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *	Unless required by applicable law or agreed to in writing, software
+ *	distributed under the License is distributed on an "AS IS" BASIS,
+ *	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *	See the License for the specific language governing permissions and
+ *	limitations under the License.
+ */
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -79,11 +95,11 @@ public class ByteList implements Iterable<Byte> {
 		
 		byte returned = array[index];
 		byte[] copy = new byte[this.index - (index + 1)];
-		System.arraycopy(array, index + 1, copy, 0, this.index - (2 * (index + 1)));
+		System.arraycopy(array, index + 1, copy, 0, copy.length);
 		this.index--;
 		System.arraycopy(copy, 0, array, index, copy.length);
 		
-		if (index < (array.length - growthStepSize)) resizeDown();
+		if (this.index <= (array.length - growthStepSize)) resizeDown();
 		
 		return returned;
 		
@@ -95,6 +111,7 @@ public class ByteList implements Iterable<Byte> {
 	
 	}
 	
+	
 	public int size() {
 		
 		return index;
@@ -105,10 +122,11 @@ public class ByteList implements Iterable<Byte> {
 		
 		String info = "";
 		
-		info += "array:\t\t\t"		+ hrArray(array)	+ "\r\n";
-		info += "array.length:\t"	+ array.length		+ "\r\n";
-		info += "reported size:\t"	+ size()			+ "\r\n";
-		info += "growth step:\t"	+ growthStepSize;
+		info += "array:\t\t\t\t"		+ hrArray(array)			+ "\r\n";
+		info += "reported size:\t\t"	+ size()					+ "\r\n";
+		info += "array.length:\t\t"		+ array.length				+ "\r\n";
+		info += "unused indicies:\t"	+ (array.length - size())	+ "\r\n";
+		info += "growth step:\t\t"		+ growthStepSize;
 		
 		return info;
 		
