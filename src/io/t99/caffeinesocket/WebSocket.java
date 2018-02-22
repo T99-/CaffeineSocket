@@ -1,7 +1,7 @@
 package io.t99.caffeinesocket;
 
 /*
- *	Copyright 2017, Trevor Sears <trevorsears.main@gmail.com>
+ *	Copyright 2018, Trevor Sears <trevorsears.main@gmail.com>
  *
  *	Licensed under the Apache License, Version 2.0 (the "License");
  *	you may not use this file except in compliance with the License.
@@ -198,10 +198,10 @@ public class WebSocket {
 		
 		byte[] response = (
 				"HTTP/1.1 101 Switching Protocols\r\n" +
-						"Connection: upgrade\r\n" +
-						"Upgrade: websocket\r\n" +
-						"Sec-WebSocket-Accept: " + websocketAcceptKey + "\r\n" +
-						"\r\n"
+				"Connection: upgrade\r\n" +
+				"Upgrade: websocket\r\n" +
+				"Sec-WebSocket-Accept: " + websocketAcceptKey + "\r\n" +
+				"\r\n"
 		).getBytes(); // TODO - Remember to add conditionals for subprotocols and extensions, as well as different WebSocket versions.
 		
 		try {

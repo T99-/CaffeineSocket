@@ -35,6 +35,56 @@ public class ByteList implements Iterable<Byte> {
 		
 	}
 	
+	public ByteList(ByteList byteList, int i1, int i2) {
+		
+		this(byteList, i1, i2, 1);
+		
+	}
+	
+	public ByteList(ByteList byteList, int i1, int i2, int growthStepSize) {
+		
+		this(i2-i1, growthStepSize);
+		
+		for (int i = i1; i < i2; i++) {
+			
+			this.add(byteList.get(i));
+			
+		}
+		
+	}
+	
+	public byte get(int index) {
+		
+		return array[index];
+		
+	}
+	
+	public boolean getBit(int bit) {
+		
+		return NumberBaseConverter.signedByteToBinary(get(bit/8))[bit%8];
+		
+	}
+	
+	public boolean getBit(int b, int bit) {
+
+		return NumberBaseConverter.signedByteToBinary(get(b))[bit];
+
+	}
+	
+	public boolean[] getBits(int i1, int i2) {
+		
+		boolean[] bits = new boolean[i2 - i1];
+		
+		for (int i = i1; i < i2; i++) {
+			
+			bits[i - i1] = getBit(i);
+			
+		}
+		
+		return bits;
+		
+	}
+	
 	private synchronized void resizeUp() {
 		
 		// Store a copy of the array in `copy`.
@@ -64,13 +114,32 @@ public class ByteList implements Iterable<Byte> {
 	public synchronized void add(byte b) {
 		
 		// If the current array is not large enough for the new element, call `resizeUp()`.
-		if (index > (array.length - 1)) resizeUp();
+		if ((index + 1) > array.length) resizeUp();
 		
 		// Store the new element at the active index of the array.
 		array[index] = b;
 		
+		// Move the index to the new appropriate position.
 		index++;
 	
+	}
+	
+	public synchronized void add(ByteList b) {
+		
+		// If the current array is not large enough for the new elements, call `resizeUp()`.
+		if ((index + b.size()) > array.length) resizeUp();
+		
+		// Store the new elements at the active index of the array.
+		for (int index = 0; index < b.size(); index++) {
+			
+			// Store the nth element of b at the this.nth index of the array.
+			array[this.index] = b.get(index);
+			
+			// Move the index to the new appropriate position.
+			this.index++;
+		
+		}
+		
 	}
 	
 	public synchronized byte remove(int index) throws IndexOutOfBoundsException {

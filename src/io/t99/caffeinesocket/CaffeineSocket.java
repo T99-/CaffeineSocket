@@ -1,7 +1,7 @@
 package io.t99.caffeinesocket;
 
 /*
- *	Copyright 2017, Trevor Sears <trevorsears.main@gmail.com>
+ *	Copyright 2018, Trevor Sears <trevorsears.main@gmail.com>
  *
  *	Licensed under the Apache License, Version 2.0 (the "License");
  *	you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package io.t99.caffeinesocket;
  *	limitations under the License.
  */
 
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import io.t99.caffeinesocket.util.ByteList;
 
 public class CaffeineSocket {
@@ -27,90 +26,10 @@ public class CaffeineSocket {
 	
 	public static void main(String[] args) {
 		
-		ByteList bytes = new ByteList(10, 5);
+		setDebug(true);
 		
-		try {
-			
-			bytes.add((byte) 0);
-			bytes.add((byte) 1);
-			bytes.add((byte) 2);
-			bytes.add((byte) 3);
-			bytes.add((byte) 4);
-			bytes.add((byte) 5);
-			bytes.add((byte) 6);
-			bytes.add((byte) 7);
-			bytes.add((byte) 8);
-			bytes.add((byte) 9);
-			bytes.add((byte) 10);
-			bytes.add((byte) 11);
-			bytes.add((byte) 12);
-			bytes.add((byte) 13);
-			bytes.add((byte) 14);
-			bytes.remove(5);
-			bytes.remove(4);
-			bytes.remove(9);
-			bytes.add((byte) 15);
-			
-		} catch (ArrayIndexOutOfBoundsException e) {
-			
-			System.out.println("ArrayIndexOutOfBoundsException:");
-			e.printStackTrace();
-			System.out.println(bytes.getDebugInfo());
-			
-		}
-		
-		System.out.println(bytes.getDebugInfo());
-		
-//		byte[] arr = new byte[5];
-//		arr[0] = 0b00000001;
-//		arr[1] = 0b00000010;
-//		arr[2] = 0b00000011;
-//
-//		for (byte b: arr) {
-//
-//			System.out.println(b);
-//
-//		}
-		
-		//setDebug(true);
-		
-		//WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
-		//webSocket.handshake();
-		
-		//shifter();
-		
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(false);
-//		binary.append(false);
-//		binary.append(true);
-//		binary.append(true);
-//		binary.append(false);
+		WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
+		webSocket.handshake();
 		
 	}
 	
