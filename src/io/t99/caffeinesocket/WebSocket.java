@@ -259,6 +259,8 @@ public class WebSocket {
 			
 		}
 		
+		if (CaffeineSocket.getDebug()) System.out.println("Successfully closed the WebSocket.");
+		
 		return true;
 		
 	}
@@ -279,5 +281,7 @@ public class WebSocket {
 		return output;
 	
 	}
+
+}
 
 }

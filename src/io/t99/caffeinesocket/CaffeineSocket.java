@@ -16,8 +16,6 @@ package io.t99.caffeinesocket;
  *	limitations under the License.
  */
 
-import io.t99.caffeinesocket.util.ByteList;
-
 public class CaffeineSocket {
 	
 	private static boolean debug = false;

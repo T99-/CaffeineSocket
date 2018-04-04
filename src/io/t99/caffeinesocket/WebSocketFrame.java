@@ -68,11 +68,16 @@ public class WebSocketFrame {
 	 */
 
 	// Fields
-
+	
+	/**
+	 * The WebSocket that received this frame.
+	 */
+	WebSocket parent;
+	
 	/**
 	 * Indicator of the current completeness of a given WebSocketFrame instance (the entirety of the frame, not just the header).
 	 */
-	WebSocketFrameState state = WebSocketFrameState.INCOMPLETE;
+	boolean isComplete = false;
 
 	/**
 	 * Indicator of the current completeness of a given WebSocketFrame's headers.
@@ -80,9 +85,12 @@ public class WebSocketFrame {
 	boolean headerComplete = false;
 
 	/**
-	 * rewrite me
+	 * A ByteList containing the raw bytes received of a given frame.
+	 *
+	 * Initially empty, but appended to by the parent {@link WebSocketListener} by way of calling {@link #process(byte)}.
+	 *
+	 * @see io.t99.caffeinesocket.util.ByteList
 	 */
-	// old text: The raw binary of a given instance of WebSocketFrame. Initially empty, but appended to as the provider {@link WebSocketListener} calls {@link #process(Binary)}.
 	private ByteList rawMessage;
 
 	/**
@@ -96,35 +104,35 @@ public class WebSocketFrame {
 	 * @see #payloadLengthIndicator
 	 */
 	private static final int NOT_SET = -1;
-
+	
 	/*
-	 * These constants denote the payload size scheme that a frame *can* used.
+	 * These constants denote the payload size scheme that a frame *can* use.
 	 *
 	 *	- PLS_SMALL		= 07 bits used to encode the payload size.
 	 *	- PLS_MEDIUM	= 23 bits used to encode the payload size.
 	 *	- PLS_LARGE		= 71 bits used to encode the payload size.
 	 *
-	 * 9 bits are then added for the FIN bit, the RSV1, RSV2, and RSV3 bits, the Opcode bits, and the mask bit which all
+	 * 9 bits are then added for the FIN bit (1), the RSV1 (1), RSV2 (1), and RSV3 bits (1), the Opcode bits (4), and the mask bit (1) which all
 	 * precede the payload size in the WebSocket header.
 	 */
 
 	/**
-	 * Constant used to denote the smallest number of bits that can precede either the {@link #maskingKey}, or the
+	 * Constant used to denote the smallest number of bytes that can precede either the {@link #maskingKey}, or the
 	 * {@link #payload}, depending on whether or not the {@link #masked} boolean is true. Set to 16b/2B.
 	 */
-	private static final int PLS_SMALL	= 16;
+	private static final int PLS_SMALL	= 2;
 
 	/**
-	 * Constant used to denote the middle-sized number of bits that can precede either the {@link #maskingKey}, or the
+	 * Constant used to denote the middle-sized number of bytes that can precede either the {@link #maskingKey}, or the
 	 * {@link #payload}, depending on whether or not the {@link #masked} boolean is true. Set to 32b/4B.
 	 */
-	private static final int PLS_MEDIUM	= 32;
+	private static final int PLS_MEDIUM	= 4;
 
 	/**
-	 * Constant used to denote the largest number of bits that can precede either the {@link #maskingKey}, or the
+	 * Constant used to denote the largest number of bytes that can precede either the {@link #maskingKey}, or the
 	 * {@link #payload}, depending on whether or not the {@link #masked} boolean is true. Set to 80b/10B.
 	 */
-	private static final int PLS_LARGE	= 80;
+	private static final int PLS_LARGE	= 10;
 
 	/**
 	 * The finality marker for the frame. If this is true, this is the last frame in a series. Singlet frames are marked
@@ -146,7 +154,12 @@ public class WebSocketFrame {
 	 * I'm not 100% sure what these are for yet... something to do with extensions maybe.
 	 */
 	private Boolean rsv3;
-
+	
+	/**
+	 * The frame type, indicated by it's received opcode.
+	 *
+	 * @see io.t99.caffeinesocket.WebSocketFrameType
+	 */
 	private WebSocketFrameType frameType;
 
 	/**
@@ -188,25 +201,23 @@ public class WebSocketFrame {
 	 * payload = rawMessage - (fin + RSV# + opcode + masked + payloadLength + maskingKey)
 	 */
 	private ByteList payload;
+	
+	/**
+	 *
+	 */
+	private StringBuilder textPayload = new StringBuilder();
 
-	public WebSocketFrame(boolean maskRequirement) {
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement) {
 
+		this.parent = parent;
 		this.maskRequirement = maskRequirement;
-		
 		rawMessage = new ByteList(16, 10);
 
 	}
-
-	public WebSocketFrame(boolean maskRequirement, WebSocketControlFrameType controlFrame) {
-
-		this(maskRequirement, controlFrame, "");
+	
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketControlFrameType controlFrameType, String string) { // Use the String
 		
-		rawMessage = new ByteList(16, 10);
-
-	}
-
-	public WebSocketFrame(boolean maskRequirement, WebSocketControlFrameType controlFrameType, String string) { // Use the String
-
+		this.parent = parent;
 		this.maskRequirement = maskRequirement;
 		frameType = controlFrameType;
 		
@@ -214,16 +225,31 @@ public class WebSocketFrame {
 
 	}
 
-	public WebSocketFrame(boolean maskRequirement, WebSocketControlFrameType controlFrameType, ByteList bytelist) { // Use the ByteList
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketControlFrameType controlFrameType, ByteList bytelist) { // Use the ByteList
 
+		this.parent = parent;
 		this.maskRequirement = maskRequirement;
 		frameType = controlFrameType;
 		
 		rawMessage = new ByteList(16, 10);
 
 	}
-
-	public WebSocketFrame(boolean maskRequirement, String string) throws UnsupportedEncodingException {
+	
+	/**
+	 * Constructor for composing new control frames bound for other WebSockets.
+	 *
+	 * @param maskRequirement
+	 * @param controlFrame
+	 */
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketControlFrameType controlFrame) {
+		
+		this(parent, maskRequirement, controlFrame, "");
+		
+		rawMessage = new ByteList(16, 10);
+		
+	}
+	
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, String string) throws UnsupportedEncodingException {
 
 		if (!StringUtils.isPureASCII(string)) throw new UnsupportedEncodingException("String passed to WebSocketFrame(boolean, String) was not pure ASCII.");
 
@@ -240,8 +266,8 @@ public class WebSocketFrame {
 
 	}
 
-	public WebSocketFrameState process(byte b) {
-
+	public boolean process(byte b) throws IllegalStateException {
+		
 		rawMessage.add(b);
 
 		if (!headerComplete) {
@@ -271,26 +297,22 @@ public class WebSocketFrame {
 				}
 				
 			}
-			
-			
 
-			
-
-			if (masked == null && rawMessage.size() >= 9) {
+			if (masked == null && rawMessage.size() >= 2) {
 
 				masked = rawMessage.getBit(8);
 
 				if (!(masked == maskRequirement)) {
 
-					state = WebSocketFrameState.ERROR;
+					throw new IllegalStateException("A message that required a mask was received unmasked");
 
 				}
 
 			}
-
+			
 			if (payloadLengthIndicator == NOT_SET && rawMessage.size() >= PLS_SMALL) {
-
-				payloadLengthIndicator = NumberBaseConverter.binaryToDecimal(rawMessage.getBits(9, PLS_SMALL));
+				
+				payloadLengthIndicator = NumberBaseConverter.binaryToDecimal(rawMessage.getBits(9, (PLS_SMALL * 8)));
 
 			}
 
@@ -303,66 +325,100 @@ public class WebSocketFrame {
 
 			if (payloadLength == NOT_SET && payloadLengthIndicator == 126 && rawMessage.size() >= PLS_MEDIUM) {
 
-				payloadLength = NumberBaseConverter.binaryToDecimal(rawMessage.getBits(16, PLS_MEDIUM));
+				payloadLength = NumberBaseConverter.binaryToDecimal(rawMessage.getBits(16, PLS_MEDIUM * 8));
 				headerSize = PLS_MEDIUM; // Without the masking key.
 
 			}
 
 			if (payloadLength == NOT_SET && payloadLengthIndicator == 127 && rawMessage.size() >= PLS_LARGE) {
 
-				payloadLength = NumberBaseConverter.binaryToDecimal(rawMessage.getBits(16, PLS_LARGE));
+				payloadLength = NumberBaseConverter.binaryToDecimal(rawMessage.getBits(16, PLS_LARGE * 8));
 				headerSize = PLS_LARGE; // Without the masking key.
 
 			}
 
-			if (masked != null && masked && maskingKey == null && rawMessage.size() >= headerSize + 32) {
+			if (masked != null && masked && maskingKey == null && headerSize != NOT_SET && rawMessage.size() >= headerSize + 4) {
 
-				maskingKey = new ByteList(rawMessage, headerSize, headerSize + 32);
-				headerSize += 32; // Now it includes the masking key.
+				maskingKey = new ByteList(rawMessage, headerSize, headerSize + 4, 1);
+				headerSize += 4; // Now it includes the masking key.
 
 			}
 
 			if (areHeadersComplete()) headerComplete = true;
 
-		} else {
+		}
+		
+		/*
+		 * I know it seems like I could have used an else statement, but I couldn't have.
+		 *
+		 * Just trust me on this.
+		 *
+		 * It has to do with zero-length payloads.
+		 */
+		
+		if (headerComplete) {
 
-			if ((rawMessage.size() - headerSize) / 8 == payloadLength) {
+			if (payloadLength == 0) {
+				
+				payload = null;
+				textPayload = null;
+				
+				isComplete = true;
+				
+			} else if ((rawMessage.size() - headerSize) == payloadLength) {
+				
+				System.out.println("reached");
+				
+				payload = new ByteList(rawMessage, headerSize, rawMessage.size(), 1);
 
-				payload = new ByteList(rawMessage, headerSize, rawMessage.size());
+				ByteList encodedPayload = payload;				// This will hold the masked version of the payload.
+				payload = new ByteList((int) payloadLength);	// The payload variable can now hold the unmasked version.
 
-				ByteList encodedPayload = payload;	// This will hold the masked version of the payload.
-				payload = new ByteList();			// The payload variable can now hold the unmasked version.
+				for (int octet = 0; octet < encodedPayload.size(); octet++) {
 
-				// Here's where we unmask the payload.
-
-				for (int octet = 0; octet < payload.size(); octet++) {
-
-					payload.add((byte) ((int) payload.get(octet) ^ (int) maskingKey.get(octet % 4)));
-					//payload.add(Binary.logicalXor(payloadOctets[octet], maskingKeyOctets[octet % 4]));
+					payload.add((byte) ((int) encodedPayload.get(octet) ^ (int) maskingKey.get(octet % 4)));
 
 				}
-				// Now payload holds the unmasked version of the frame.
-
-				state = WebSocketFrameState.COMPLETE;
-
+				
 				for (byte character: payload) {
+					
+					textPayload.append((char) NumberBaseConverter.signedByteToDecimal(character));
+					
+				}
+				
+				isComplete = true;
 
-					System.out.print((char) NumberBaseConverter.signedByteToDecimal(character));
+			}
+			
+			if (frameType instanceof WebSocketControlFrameType) {
+
+				switch ((WebSocketControlFrameType) frameType) {
+
+					case CONNECTION_CLOSE:
+						System.out.println("Received CLOSE frame, queuing closing of parent WebSocket...");
+						parent.close();
+						break;
+
+					case PING:
+						break;
+
+					case PONG:
+						break;
 
 				}
-
-				System.out.print("\r\n");
 
 			}
 
 		}
-
-		return state;
+		
+		System.out.println(getDebugInfo());
+		
+		return isComplete;
 
 	}
 
  	private boolean areHeadersComplete() {
-
+		
 		if (fin == null) return false;
 		if (rsv1 == null) return false;
 		if (rsv2 == null) return false;
@@ -371,10 +427,52 @@ public class WebSocketFrame {
 		if (masked == null) return false;
 		if (payloadLength == NOT_SET) return false;
 		if (masked && maskingKey == null) return false;
-//		if (masked && maskingKey.size() != 32) return false;
-
+		//if (masked && maskingKey.size() != 32) return false; // TODO - Why was this commented out?
 		return true;
 
+	}
+	
+	public String getDebugInfo() {
+		
+		StringBuilder debugInfo = new StringBuilder();
+		
+		debugInfo.append("IS COMPLETE:\t\t" + isComplete + "\n");
+		
+		if (fin != null) debugInfo.append("FIN:\t\t\t\t" + fin + "\n");
+		else debugInfo.append("FIN:\t\t\t\tNULL\n");
+		
+		if (rsv1 != null) debugInfo.append("RSV1:\t\t\t\t" + rsv1 + "\n");
+		else debugInfo.append("RSV1:\t\t\t\tNULL\n");
+		
+		if (rsv2 != null) debugInfo.append("RSV2:\t\t\t\t" + rsv2 + "\n");
+		else debugInfo.append("RSV2:\t\t\t\tNULL\n");
+		
+		if (rsv3 != null) debugInfo.append("RSV3:\t\t\t\t" + rsv3 + "\n");
+		else debugInfo.append("RSV3:\t\t\t\tNULL\n");
+		
+		if (masked != null) debugInfo.append("Message Masked:\t\t" + masked + "\n");
+		else debugInfo.append("Message Masked:\t\tNULL\n");
+		
+		if (frameType != null) debugInfo.append("OpCode:\t\t\t\t" + frameType.toString() + "\n");
+		else debugInfo.append("OpCode:\t\t\t\tNULL\n");
+		
+		if (maskingKey != null) debugInfo.append("Masking Key:\t\t" + maskingKey.getArray() + "\n");
+		else debugInfo.append("Masking Key:\t\tNULL\n");
+		
+		if (payloadLength != NOT_SET) debugInfo.append("Payload Size:\t\t" + payloadLength + "\n");
+		else debugInfo.append("Payload Size:\t\tNOT_SET\n");
+		
+		if (rawMessage != null) debugInfo.append("Raw Message:\t\t" + rawMessage.getArray() + "\n");
+		else debugInfo.append("Raw Message:\t\tNULL\n");
+		
+		if (payload != null) debugInfo.append("Raw Payload:\t\t" + payload.getArray() + "\n");
+		else debugInfo.append("Raw Payload:\t\tNULL\n");
+		
+		if (textPayload != null) debugInfo.append("Textual Payload:\t" + textPayload + "\n");
+		else debugInfo.append("Textual Payload:\tNULL\n");
+		
+		return debugInfo.toString();
+		
 	}
 
 }

@@ -43,6 +43,8 @@ public class WebSocketListener implements Runnable {
 	 * The InputStream of the parent WebSocket.
 	 */
 	InputStream input;
+	
+	volatile boolean isListening;
 
 	/**
 	 * Standard constructor for a WebSocketListener.
@@ -65,8 +67,52 @@ public class WebSocketListener implements Runnable {
 	public void provideInputStream(InputStream inputStream) {
 
 		input = inputStream;
-		listener.start();
+		this.start();
 
+	}
+	
+	public boolean start() {
+		
+		if (!isListening && !listener.isAlive()) {
+			
+			isListening = true;
+			listener.start();
+			
+			return true;
+			
+		} else {
+			
+			return false;
+			
+		}
+		
+	}
+	
+	public boolean stop() {
+		
+		if (isListening && listener.isAlive()) {
+			
+			isListening = false;
+			
+			try {
+				
+				listener.join();
+				
+			}
+			catch (InterruptedException e) {
+				
+				if (CaffeineSocket.getDebug()) System.out.println("Interrupted the " + listener.getName() + " thread while attempting to join it.");
+				
+			}
+			
+			return true;
+			
+		} else {
+			
+			return false;
+			
+		}
+		
 	}
 
 	/**
@@ -74,36 +120,37 @@ public class WebSocketListener implements Runnable {
 	 */
 	@Override
 	public void run() {
+		
+		boolean frameComplete;
 
-		WebSocketFrameState frameState;
-
-		while (true) {
-
-			WebSocketFrame frame = new WebSocketFrame(true); // TODO - Unhardcode this value - not always going to be a server.
-			frameState = WebSocketFrameState.INCOMPLETE;
-
-			while (frameState == WebSocketFrameState.INCOMPLETE) {
+		while (isListening) {
+			
+			WebSocketFrame frame = new WebSocketFrame(parent, true); // TODO - Unhardcode this value - not always going to be a server.
+			frameComplete = false;
+			
+			while (!frameComplete) {
 
 				try {
 
 					if (input != null && input.available() > 0) {
-
-						//frameState = frame.process(NumberBaseConverter.decimalToBinary(input.read()));
-						frameState = frame.process((byte) input.read());
+						
+						frameComplete = frame.process((byte) input.read());
 
 					}
 
 				} catch (IOException e) {
+					
+					if (CaffeineSocket.getDebug()) System.out.println("Attempted to read from closed parent WebSocket SocketInputStream.");
+					this.stop();
+					// break;
 
-					if (CaffeineSocket.getDebug()) System.out.println("Attempted to read from closed parentWebSocket SocketInputStream.");
-
-				}
-
-				if (frameState == WebSocketFrameState.ERROR) { // TODO - possibly make the WebSocketFrame throw an error instead of this conditional? faster maybe?
-
-					if (CaffeineSocket.getDebug()) System.out.println("WebSocketFrameState returned as ERROR: closing parent WebSocket...");
+				} catch (IllegalStateException e) {
+					
+					if (CaffeineSocket.getDebug()) System.out.println(e.getMessage() + ": closing parent WebSocket...");
 					parent.close();
-
+					stop();
+					// break;
+					
 				}
 
 			}

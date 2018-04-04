@@ -51,9 +51,13 @@ public class ByteList implements Iterable<Byte> {
 		
 	}
 	
-	public ByteList(ByteList byteList, int i1, int i2) {
+	public ByteList(ByteList byteList, int size, int growthStepSize) throws IndexOutOfBoundsException {
 		
-		this(byteList, i1, i2, 1);
+		this(size, growthStepSize);
+		
+		if (size < byteList.size()) throw new IndexOutOfBoundsException("Attempted to insert a ByteList of size " + byteList.size() + " into a new ByteList of size " + size);
+		
+		this.add(byteList);
 		
 	}
 	
@@ -180,7 +184,6 @@ public class ByteList implements Iterable<Byte> {
 	
 	}
 	
-	
 	public int size() {
 		
 		return index;
@@ -201,19 +204,39 @@ public class ByteList implements Iterable<Byte> {
 		
 	}
 	
+	public String getArray() {
+		
+		return hrArray(this.array);
+		
+	}
+	
 	public static String hrArray(byte[] bytes) {
 		
 		String s = "[";
 		
 		for (int i = 0; i < bytes.length - 1; i++) {
 			
-			s += bytes[i] + ", ";
+			s += hrByte(bytes[i]) + ", ";
 			
 		}
 		
-		s += bytes[bytes.length - 1] + "]";
+		s += hrByte(bytes[bytes.length - 1]) + "]";
 		
 		return s;
+		
+	}
+	
+	public static int hrByte(byte b) {
+		
+		if (b < 0) {
+			
+			return -(-128 - (b + 128));
+			
+		} else {
+			
+			return b;
+			
+		}
 		
 	}
 	
