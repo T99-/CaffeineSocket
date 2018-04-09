@@ -105,6 +105,12 @@ public class ByteList implements Iterable<Byte> {
 		
 	}
 	
+	public synchronized void resizeToLength() {
+	
+		// TODO - Write `resizeToLength()` method.
+	
+	}
+	
 	private synchronized void resizeUp() {
 		
 		// Store a copy of the array in `copy`.
@@ -194,10 +200,10 @@ public class ByteList implements Iterable<Byte> {
 		
 		String info = "";
 		
-		info += "array:\t\t\t\t"		+ hrArray(array)			+ "\r\n";
-		info += "reported size:\t\t"	+ size()					+ "\r\n";
-		info += "array.length:\t\t"		+ array.length				+ "\r\n";
-		info += "unused indicies:\t"	+ (array.length - size())	+ "\r\n";
+		info += "array:\t\t\t\t"		+ hrArray(array)			+ System.lineSeparator();
+		info += "reported size:\t\t"	+ size()					+ System.lineSeparator();
+		info += "array.length:\t\t"		+ array.length				+ System.lineSeparator();
+		info += "unused indicies:\t"	+ (array.length - size())	+ System.lineSeparator();
 		info += "growth step:\t\t"		+ growthStepSize;
 		
 		return info;

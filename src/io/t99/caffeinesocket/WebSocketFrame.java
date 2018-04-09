@@ -158,9 +158,9 @@ public class WebSocketFrame {
 	/**
 	 * The frame type, indicated by it's received opcode.
 	 *
-	 * @see io.t99.caffeinesocket.WebSocketFrameType
+	 * @see io.t99.caffeinesocket.WebSocketFrame.Type
 	 */
-	private WebSocketFrameType frameType;
+	private WebSocketFrame.Type frameType;
 
 	/**
 	 * The mask marker for the frame. If this is true, the frame is masked, as is usually (and as should be) the case
@@ -215,7 +215,7 @@ public class WebSocketFrame {
 
 	}
 	
-	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketControlFrameType controlFrameType, String string) { // Use the String
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketFrame.Type controlFrameType, String string) { // Use the String
 		
 		this.parent = parent;
 		this.maskRequirement = maskRequirement;
@@ -225,7 +225,7 @@ public class WebSocketFrame {
 
 	}
 
-	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketControlFrameType controlFrameType, ByteList bytelist) { // Use the ByteList
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketFrame.Type controlFrameType, ByteList bytelist) { // Use the ByteList
 
 		this.parent = parent;
 		this.maskRequirement = maskRequirement;
@@ -241,7 +241,7 @@ public class WebSocketFrame {
 	 * @param maskRequirement
 	 * @param controlFrame
 	 */
-	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketControlFrameType controlFrame) {
+	public WebSocketFrame(WebSocket parent, boolean maskRequirement, WebSocketFrame.Type controlFrame) {
 		
 		this(parent, maskRequirement, controlFrame, "");
 		
@@ -257,7 +257,7 @@ public class WebSocketFrame {
 		rsv1 = false;
 		rsv2 = false;
 		rsv3 = false;
-		frameType = WebSocketDataFrameType.TEXT;
+		frameType = WebSocketFrame.Type.TEXT;
 		this.maskRequirement = maskRequirement;
 		
 		rawMessage = new ByteList(16, 10);
@@ -286,11 +286,12 @@ public class WebSocketFrame {
 					
 					try {
 						
-						frameType = WebSocketFrameType.getFrameTypeForOpcode(NumberBaseConverter.binaryToDecimal(rawMessage.getBits(4, 8)));
+						// Yikes, I know. It determines the frame type by converting the correct bits to decimal and checking that against known types.
+						frameType = WebSocketFrame.Type.getFrameTypeForOpcode(NumberBaseConverter.binaryToDecimal(rawMessage.getBits(4, 8)));
 						
 					} catch (InvalidOpcodeException e) {
 						
-						if (CaffeineSocket.getDebug()) System.err.println(e);
+						if (CaffeineSocket.getDebug()) e.printStackTrace();
 						
 					}
 					
@@ -367,8 +368,6 @@ public class WebSocketFrame {
 				
 			} else if ((rawMessage.size() - headerSize) == payloadLength) {
 				
-				System.out.println("reached");
-				
 				payload = new ByteList(rawMessage, headerSize, rawMessage.size(), 1);
 
 				ByteList encodedPayload = payload;				// This will hold the masked version of the payload.
@@ -390,9 +389,9 @@ public class WebSocketFrame {
 
 			}
 			
-			if (frameType instanceof WebSocketControlFrameType) {
+			if (frameType.isControlFrame()) {
 
-				switch ((WebSocketControlFrameType) frameType) {
+				switch (frameType) {
 
 					case CONNECTION_CLOSE:
 						System.out.println("Received CLOSE frame, queuing closing of parent WebSocket...");
@@ -411,7 +410,8 @@ public class WebSocketFrame {
 
 		}
 		
-		System.out.println(getDebugInfo());
+		// System.out.println(getDebugInfo()); TODO
+		if (isComplete && textPayload != null) System.out.println(textPayload);
 		
 		return isComplete;
 
@@ -474,5 +474,111 @@ public class WebSocketFrame {
 		return debugInfo.toString();
 		
 	}
-
+	
+	/**
+	 * Enumeration interface, serving as an umbrella class for both Control Frame types and Data Frame types.
+	 *
+	 * @author <a href="mailto:trevorsears.main@gmail.com">Trevor Sears</a>
+	 * @version v0.1.0
+	 */
+	enum Type {
+		
+		/*
+		 * The opcode for the frame. Available codes listed below.
+		 *
+		 *	- 0x0 (dec 00): Continuation Frame
+		 *	- 0x1 (dec 01): Text Frame
+		 *	- 0x2 (dec 02): Binary Frame
+		 *	- 0x3 (dec 03): [Reserved for further non-control frames...]
+		 *	- 0x4 (dec 04): [Reserved for further non-control frames...]
+		 *	- 0x5 (dec 05): [Reserved for further non-control frames...]
+		 *	- 0x6 (dec 06): [Reserved for further non-control frames...]
+		 *	- 0x7 (dec 07): [Reserved for further non-control frames...]
+		 *	- 0x8 (dec 08): Close Connection
+		 *	- 0x9 (dec 09): Ping!
+		 *	- 0xA (dec 10): Pong!
+		 *	- 0xB (dec 11): [Reserved for further control frames...]
+		 *	- 0xC (dec 12): [Reserved for further control frames...]
+		 *	- 0xD (dec 13): [Reserved for further control frames...]
+		 *	- 0xE (dec 14): [Reserved for further control frames...]
+		 *	- 0xF (dec 15): [Reserved for further control frames...]
+		 */
+		
+		CONTINUATION		(0, false),
+		TEXT				(1, false),
+		BINARY				(2, false),
+		CONNECTION_CLOSE	(8, true),
+		PING				(9, true),
+		PONG				(10, true);
+		
+		private final int opcode;
+		private final boolean control;
+		
+		Type(int opcode, boolean control) {
+			
+			this.opcode = opcode;
+			this.control = control;
+			
+		}
+		
+		/**
+		 * Returns the WebSocketFrame.Type's opcode.
+		 *
+		 * @return The opcode of the given instance of a WebSocketFrame.Type.
+		 */
+		public int getOpcode() {
+			
+			return opcode;
+			
+		}
+		
+		/**
+		 * Indicates whether or not a given frame type is a control frame.
+		 *
+		 * @return A boolean representing whether or not a given frame type is a control frame.
+		 */
+		public boolean isControlFrame() {
+			
+			return control;
+			
+		}
+		
+		/**
+		 * Returns a matching WebSocketFrame.Type, when provided a valid opcode.
+		 *
+		 * @param opcode The opcode for the desired frame type.
+		 * @return A WebSocketFrame.Type that matches the given opcode.
+		 * @throws InvalidOpcodeException If the provided opcode does not match a valid frame type.
+		 */
+		public static WebSocketFrame.Type getFrameTypeForOpcode(int opcode) throws InvalidOpcodeException {
+			
+			switch (opcode) {
+				
+				case 0x0:
+					return CONTINUATION;
+				
+				case 0x1:
+					return TEXT;
+				
+				case 0x2:
+					return BINARY;
+				
+				case 0x8:
+					return CONNECTION_CLOSE;
+				
+				case 0x9:
+					return PING;
+				
+				case 0xA:
+					return PONG;
+				
+				default:
+					throw new InvalidOpcodeException("An opcode of " + opcode + " was received, and matched no valid/recognized frame type.");
+				
+			}
+			
+		}
+		
+	}
+	
 }

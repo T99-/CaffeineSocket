@@ -49,6 +49,8 @@ public class WebSocket {
 	 */
 	private int port;
 	
+	private WebSocket.State state = WebSocket.State.PRESTART;
+	
 	/**
 	 * {@link ServerSocket} that acts as the 'Socket' in 'WebSocket'.
 	 */
@@ -79,9 +81,6 @@ public class WebSocket {
 	 */
 	public final String name;
 	
-	/**
-	 *
-	 */
 	private boolean secure = false;
 	
 	public WebSocket() {
@@ -112,11 +111,15 @@ public class WebSocket {
 	
 	public boolean handshake() {
 		
+		state = WebSocket.State.HANDSHAKING;
+		
 		try {
 			
 			socket = new ServerSocket(port);
 			
 		} catch (IOException e) {
+			
+			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("Could not get the requested port.");
 			return false;
@@ -125,9 +128,11 @@ public class WebSocket {
 		
 		try {
 			
-			if (CaffeineSocket.getDebug()) System.out.println("Server has started on " + socket.getInetAddress().getLocalHost().getHostAddress() + ":" + port + ".\r\nWaiting for a connection...\r\n");
+			if (CaffeineSocket.getDebug()) System.out.println("Server has started on " + socket.getInetAddress().getLocalHost().getHostAddress() + ":" + port + "." + System.lineSeparator() + "Waiting for a connection..." + System.lineSeparator());
 			
 		} catch (UnknownHostException e) {
+			
+			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("Unknown host.");
 			
@@ -141,18 +146,22 @@ public class WebSocket {
 			
 		} catch (IOException e) {
 			
+			state = WebSocket.State.ERRORED;
+			
 			if (CaffeineSocket.getDebug()) System.out.println("Failed to accept client connection.");
 			return false;
 			
 		}
 		
-		if (CaffeineSocket.getDebug()) System.out.println("A client connected.\r\n");
+		if (CaffeineSocket.getDebug()) System.out.println("A client connected." + System.lineSeparator());
 		
 		try {
 			
 			input = client.getInputStream();
 			
 		} catch (IOException e) {
+			
+			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("Failed to get the client's InputStream.");
 			return false;
@@ -164,6 +173,8 @@ public class WebSocket {
 			output = client.getOutputStream();
 			
 		} catch (IOException e) {
+			
+			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("Failed to get the client's OutputStream.");
 			return false;
@@ -192,6 +203,8 @@ public class WebSocket {
 			
 		} catch (Exception e) {
 			
+			state = WebSocket.State.ERRORED;
+			
 			return false;
 			
 		}
@@ -210,6 +223,8 @@ public class WebSocket {
 			
 		} catch (IOException e) {
 			
+			state = WebSocket.State.ERRORED;
+			
 			if (CaffeineSocket.getDebug()) System.out.println("Failed to write the HTTP 101 Switching Protocols response to the client's OutputStream.");
 			return false;
 			
@@ -217,17 +232,23 @@ public class WebSocket {
 		
 		listener.provideInputStream(input);
 		
+		state = WebSocket.State.RUNNING;
+		
 		return true;
 	
 	}
 	
 	public boolean close() {
 		
+		state = WebSocket.State.CLOSING;
+		
 		try {
 			
 			input.close();
 			
 		} catch (IOException e) {
+			
+			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("InputStream could not be closed.");
 			if (CaffeineSocket.getDebug()) System.err.println(e);
@@ -241,6 +262,8 @@ public class WebSocket {
 			
 		} catch (IOException e) {
 			
+			state = WebSocket.State.ERRORED;
+			
 			if (CaffeineSocket.getDebug()) System.out.println("OutputStream could not be closed.");
 			if (CaffeineSocket.getDebug()) System.err.println(e);
 			return false;
@@ -253,11 +276,15 @@ public class WebSocket {
 			
 		} catch (IOException e) {
 			
+			state = WebSocket.State.ERRORED;
+			
 			if (CaffeineSocket.getDebug()) System.out.println("Socket could not be closed.");
 			if (CaffeineSocket.getDebug()) System.err.println(e);
 			return false;
 			
 		}
+		
+		state = WebSocket.State.CLOSED;
 		
 		if (CaffeineSocket.getDebug()) System.out.println("Successfully closed the WebSocket.");
 		
@@ -265,23 +292,78 @@ public class WebSocket {
 		
 	}
 	
+	public WebSocket.State getState() {
+		
+		return state;
+		
+	}
+	
 	private static String generateName() {
 	
-		String output = "";
-		Random random = new Random();
+		StringBuilder output = new StringBuilder();
+		Random random = new Random(); // random random, random
 		
-		char[] chars = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890=+".toCharArray();
+		char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890=+".toCharArray();
 		
 		for (int i = 0; i < 8; i++) {
 			
-			output += chars[random.nextInt(chars.length)];
+			output.append(chars[random.nextInt(chars.length)]);
 			
 		}
 		
-		return output;
+		return output.toString();
 	
 	}
-
-}
+	
+	public enum State {
+		
+		PRESTART		(false),
+		HANDSHAKING		(true),
+		RUNNING			(true),
+		CLOSING			(true),
+		CLOSED			(false),
+		ERRORED			(false);
+		
+		/**
+		 * Indicates whether or not the WebSocket is currently doing *anything*, not necessarily whether or not it is 'running' as a WebSocket.
+		 */
+		boolean isOperating;
+		
+		State(boolean isOperating) {
+			
+			this.isOperating = isOperating;
+			
+		}
+		
+		public boolean getOperatingStatus() {
+			
+			return isOperating;
+			
+		}
+		
+		public State advance() {
+			
+			switch (this) {
+				
+				case PRESTART:
+					return HANDSHAKING;
+					
+				case HANDSHAKING:
+					return RUNNING;
+					
+				case RUNNING:
+					return CLOSING;
+					
+				case CLOSING:
+					return CLOSED;
+					
+				default:
+					throw new IllegalStateException("Cannot advance state - state does not have a next chronological step.");
+				
+			}
+			
+		}
+		
+	}
 
 }
