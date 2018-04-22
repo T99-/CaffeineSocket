@@ -85,4 +85,19 @@ public class NumberBaseConverter {
 
 	}
 	
+	public static boolean[] ensureBinaryLength(boolean[] original, int intendedLength) {
+		
+		boolean[] correctlySizedBinary = new boolean[intendedLength];
+		
+		for (int i = 0; i < intendedLength; i++) {
+			
+			if (original.length >= i + 1) correctlySizedBinary[i] = original[i];
+			else correctlySizedBinary[i] = false;
+			
+		}
+		
+		return correctlySizedBinary;
+		
+	}
+	
 }

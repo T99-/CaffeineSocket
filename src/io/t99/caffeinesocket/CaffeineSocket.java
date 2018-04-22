@@ -16,6 +16,8 @@ package io.t99.caffeinesocket;
  *	limitations under the License.
  */
 
+import io.t99.caffeinesocket.util.NumberBaseConverter;
+
 public class CaffeineSocket {
 	
 	private static boolean debug = false;
@@ -26,8 +28,34 @@ public class CaffeineSocket {
 		
 		setDebug(true);
 		
-		WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
-		webSocket.handshake();
+//		WebSocket webSocket = new WebSocket("main ws", 1200); // TODO - not yet fully functional, sometimes fails
+//		webSocket.handshake();
+		
+		boolean[] opcodeBits = new boolean[4];
+		boolean[] rawArray = NumberBaseConverter.decimalToBinary(1);
+		
+		for (boolean b: rawArray) {
+			
+			System.out.print(b + ", ");
+			
+		}
+		
+		System.out.println();
+		
+		for (int i = 0; i < 4; i++) {
+			
+			if (rawArray.length >= i + 1) opcodeBits[i] = rawArray[i];
+			else opcodeBits[i] = false;
+			
+		}
+		
+		for (boolean b: opcodeBits) {
+			
+			System.out.print(b + ", ");
+			
+		}
+		
+		System.out.println();
 		
 	}
 	

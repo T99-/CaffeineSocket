@@ -20,6 +20,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -47,7 +48,7 @@ public class WebSocket {
 	/**
 	 * Port on which a given {@link WebSocket} instance will listen.
 	 */
-	private int port;
+	private final int port;
 	
 	private WebSocket.State state = WebSocket.State.PRESTART;
 	
@@ -69,10 +70,10 @@ public class WebSocket {
 	private OutputStream output;
 	
 	/**
-	 * {@link WebSocketListener} that continously checks a given WebSocket instance's {@link InputStream},
+	 * {@link WebSocketListener} that continuously checks a given WebSocket instance's {@link InputStream},
 	 * {@link #input} for incoming bytes.
 	 */
-	private WebSocketListener listener;
+	private final WebSocketListener listener;
 	
 	/**
 	 * {@link String} that holds either a passed 'name', or a randomly assigned 'name' used for identification of
@@ -128,7 +129,7 @@ public class WebSocket {
 		
 		try {
 			
-			if (CaffeineSocket.getDebug()) System.out.println("Server has started on " + socket.getInetAddress().getLocalHost().getHostAddress() + ":" + port + "." + System.lineSeparator() + "Waiting for a connection..." + System.lineSeparator());
+			if (CaffeineSocket.getDebug()) System.out.println("Server has started on " + InetAddress.getLocalHost().getHostAddress() + ":" + port + "." + System.lineSeparator() + "Waiting for a connection..." + System.lineSeparator());
 			
 		} catch (UnknownHostException e) {
 			
@@ -251,7 +252,7 @@ public class WebSocket {
 			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("InputStream could not be closed.");
-			if (CaffeineSocket.getDebug()) System.err.println(e);
+			if (CaffeineSocket.getDebug()) e.printStackTrace();
 			return false;
 			
 		}
@@ -265,7 +266,7 @@ public class WebSocket {
 			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("OutputStream could not be closed.");
-			if (CaffeineSocket.getDebug()) System.err.println(e);
+			if (CaffeineSocket.getDebug()) e.printStackTrace();
 			return false;
 			
 		}
@@ -279,7 +280,7 @@ public class WebSocket {
 			state = WebSocket.State.ERRORED;
 			
 			if (CaffeineSocket.getDebug()) System.out.println("Socket could not be closed.");
-			if (CaffeineSocket.getDebug()) System.err.println(e);
+			if (CaffeineSocket.getDebug()) e.printStackTrace();
 			return false;
 			
 		}
@@ -327,7 +328,7 @@ public class WebSocket {
 		/**
 		 * Indicates whether or not the WebSocket is currently doing *anything*, not necessarily whether or not it is 'running' as a WebSocket.
 		 */
-		boolean isOperating;
+		boolean isOperating; // TODO
 		
 		State(boolean isOperating) {
 			

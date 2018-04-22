@@ -203,7 +203,7 @@ public class ByteList implements Iterable<Byte> {
 		info += "array:\t\t\t\t"		+ hrArray(array)			+ System.lineSeparator();
 		info += "reported size:\t\t"	+ size()					+ System.lineSeparator();
 		info += "array.length:\t\t"		+ array.length				+ System.lineSeparator();
-		info += "unused indicies:\t"	+ (array.length - size())	+ System.lineSeparator();
+		info += "unused indices:\t"	+ (array.length - size())	+ System.lineSeparator();
 		info += "growth step:\t\t"		+ growthStepSize;
 		
 		return info;

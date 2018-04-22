@@ -16,8 +16,6 @@ package io.t99.caffeinesocket;
  *	limitations under the License.
  */
 
-import io.t99.caffeinesocket.util.NumberBaseConverter;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,12 +30,12 @@ public class WebSocketListener implements Runnable {
 	/**
 	 * Thread that continuously runs the listener.
 	 */
-	Thread listener;
+	final Thread listener;
 
 	/**
 	 * The parent WebSocket object which owns/uses this listener.
 	 */
-	WebSocket parent;
+	final WebSocket parent;
 
 	/**
 	 * The InputStream of the parent WebSocket.
@@ -116,7 +114,7 @@ public class WebSocketListener implements Runnable {
 	}
 
 	/**
-	 * Continously checks the InputStream for available bytes.
+	 * Continuously checks the InputStream for available bytes.
 	 */
 	@Override
 	public void run() {
